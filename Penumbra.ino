@@ -177,7 +177,7 @@
 ////////////////////////////////
 // Optional Roboteq pin needs a Microbasic script running on the Roboteq controller to change the throttle.
 // If the Microbasic script is not runnig this PWM signal will have no effect.
-#define THROTTLE_MOTOR_PWM  21
+//#define THROTTLE_MOTOR_PWM  21
 
 ////////////////////////////////
 
@@ -373,13 +373,21 @@ TankDriveSabertooth tankDrive(128, Serial1, driveStick);
 //    servo index 0 (LEFT_MOTOR_PWM)
 //    servo index 1 (RIGHT_MOTOR_PWM)
 //    servo index 2 (THROTTLE_MOTOR_PWM)
+#ifdef THROTTLE_MOTOR_PWM
 TankDrivePWM tankDrive(servoDispatch, 0, 1, 2, driveStick);
+#else
+TankDrivePWM tankDrive(servoDispatch, 0, 1, driveStick);
+#endif
 #elif DRIVE_SYSTEM == DRIVE_SYSTEM_ROBOTEQ_PWM
 // Tank Drive assign:
 //    servo index 0 (LEFT_MOTOR_PWM)
 //    servo index 1 (RIGHT_MOTOR_PWM)
 //    servo index 2 (THROTTLE_MOTOR_PWM)
+#ifdef THROTTLE_MOTOR_PWM
 TankDriveRoboteq tankDrive(servoDispatch, 0, 1, 2, driveStick);
+#else
+TankDriveRoboteq tankDrive(servoDispatch, 0, 1, driveStick);
+#endif
 #elif DRIVE_SYSTEM == DRIVE_SYSTEM_ROBOTEQ_SERIAL
 // Tank Drive assign:
 //    servo index 0 (LEFT_MOTOR_PWM)
@@ -392,7 +400,11 @@ TankDriveRoboteq tankDrive(Serial1, driveStick);
 //    servo index 1 (RIGHT_MOTOR_PWM)
 //    servo index 2 (THROTTLE_MOTOR_PWM)
 //    Serial1 for Roboteq serial commands
+#ifdef THROTTLE_MOTOR_PWM
 TankDriveRoboteq tankDrive(Serial1, servoDispatch, 0, 1, 2, driveStick);
+#else
+TankDriveRoboteq tankDrive(Serial1, servoDispatch, 0, 1, driveStick);
+#endif
 #else
 #error Unsupported DRIVE_SYSTEM
 #endif
