@@ -107,6 +107,9 @@
 
 #define SCALING              true   // set to true if acceleration/decelleration should be applied
 
+#define THROTTLE_INVERTED    false  // set to true if throttle should be inverted
+#define TURN_INVERTED        false  // set to true if turn should be inverted
+
 #if DRIVE_SYSTEM == DRIVE_SYSTEM_SABER
 #define CHANNEL_MIXING       true   // set to true premix channels before sending commands
 #define DRIVE_BAUD_RATE      9600
@@ -455,6 +458,12 @@ WElement mainContents[] = {
     WCheckbox("Channel Mixing", "mixing",
         []() { return tankDrive.getChannelMixing(); },
         [](bool val) { tankDrive.stop(); tankDrive.setChannelMixing(val); } ),
+    WCheckbox("Throttle Inverted", "throttleInvert",
+        []() { return tankDrive.getThrottleInverted(); },
+        [](bool val) { tankDrive.stop(); tankDrive.setThrottleInverted(val); } ),
+    WCheckbox("Turn Inverted", "turnInvert",
+        []() { return tankDrive.getTurnInverted(); },
+        [](bool val) { tankDrive.stop(); tankDrive.setTurnInverted(val); } ),
     WButton("Save", "save", []() {
         preferences.putFloat("maxspeed", tankDrive.getMaxSpeed());
         preferences.putFloat("throttleaccscale", tankDrive.getThrottleAccelerationScale());
@@ -464,6 +473,8 @@ WElement mainContents[] = {
         preferences.putFloat("guestmaxspeed", tankDrive.getGuestSpeedModifier());
         preferences.putBool("scaling", tankDrive.getScaling());
         preferences.putBool("mixing", tankDrive.getChannelMixing());
+        preferences.putBool("throttleinvert", tankDrive.getThrottleInverted());
+        preferences.putBool("turninvert", tankDrive.getTurnInverted());
     }),
     WButton("Restore", "restore", []() {
         tankDrive.setMaxSpeed(preferences.getFloat("maxspeed", MAXIMUM_SPEED));
@@ -474,6 +485,8 @@ WElement mainContents[] = {
         tankDrive.setScaling(preferences.getBool("scaling", SCALING));
         tankDrive.setGuestSpeedModifier(preferences.getFloat("guestmaxspeed", MAXIMUM_GUEST_SPEED));
         tankDrive.setChannelMixing(preferences.getBool("mixing", CHANNEL_MIXING));
+        tankDrive.setThrottleInverted(preferences.getBool("throttleinvert", THROTTLE_INVERTED));
+        tankDrive.setTurnInverted(preferences.getBool("turninvert", TURN_INVERTED));
     }),
     WImage("astromech", ASTROMECH_IMAGE)
 };
@@ -566,6 +579,8 @@ void setup()
     tankDrive.setGuestSpeedModifier(preferences.getFloat("guestmaxspeed", MAXIMUM_GUEST_SPEED));
     tankDrive.setScaling(preferences.getBool("scaling", SCALING));
     tankDrive.setChannelMixing(preferences.getBool("mixing", CHANNEL_MIXING));
+    tankDrive.setThrottleInverted(preferences.getBool("throttleinvert", THROTTLE_INVERTED));
+    tankDrive.setTurnInverted(preferences.getBool("turninvert", TURN_INVERTED));
 
 #ifdef USE_WIFI_WEB
     // For safety we will stop the motors if the web client is connected
