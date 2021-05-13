@@ -194,7 +194,9 @@
 #include "ReelTwo.h"
 #include "drive/TankDrivePWM.h"
 #include "drive/TankDriveRoboteq.h"
+#if DRIVE_SYSTEM == DRIVE_SYSTEM_SABER
 #include "drive/TankDriveSabertooth.h"
+#endif
 #include "ServoDispatchDirect.h"
 #include "ServoEasing.h"
 #include "SoftwareSerial.h"
