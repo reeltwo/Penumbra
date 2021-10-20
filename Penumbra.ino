@@ -79,17 +79,15 @@
 //#define DRIVE_SYSTEM         DRIVE_SYSTEM_SABER
 
 #ifdef USE_WIFI
-#if 1
+#define WIFI_ENABLED            true
 // Set these to your desired credentials.
-#define WIFI_AP_NAME         "R2D2"
-#define WIFI_AP_PASSPHRASE   "Astromech"
-#define WIFI_ACCESS_POINT    true  /* true if access point: false if joining existing wifi */
-#else
+#define WIFI_AP_NAME            "R2D2"
+#define WIFI_AP_PASSPHRASE      "Astromech"
+#define WIFI_ACCESS_POINT       true  /* true if access point: false if joining existing wifi */
 // Alternatively join an existing AP
-#define WIFI_AP_NAME         "MyWifi"
-#define WIFI_AP_PASSPHRASE   "MyPassword"
-#define WIFI_ACCESS_POINT    false  /* true if access point: false if joining existing wifi */
-#endif
+//#define WIFI_AP_NAME          "MyWifi"
+//#define WIFI_AP_PASSPHRASE    "MyPassword"
+//#define WIFI_ACCESS_POINT     false  /* true if access point: false if joining existing wifi */
 #endif
 
 ////////////////////////////////
@@ -139,14 +137,35 @@
 #define GESTURE_TIMEOUT_MS   2000
 #endif
 
+/* Penumbra preferences */
+#define PREFERENCE_DRIVE_SPEED              "maxspeed"
+#define PREFERENCE_DRIVE_THROTTLE_ACC_SCALE "throttleaccscale"
+#define PREFERENCE_DRIVE_THROTTLE_DEC_SCALE "throttledecscale"
+#define PREFERENCE_DRIVE_TURN_ACC_SCALE     "turnaccscale"
+#define PREFERENCE_DRIVE_TURN_DEC_SCALE     "turndecscale"
+#define PREFERENCE_DRIVE_GUEST_SPEED        "guestmaxspeed"
+#define PREFERENCE_DRIVE_SCALING            "scaling"
+#define PREFERENCE_DRIVE_MIXING             "mixing"
+#define PREFERENCE_DRIVE_THROTTLE_INVERT    "throttleinvert"
+#define PREFERENCE_DRIVE_TURN_INVERT        "turninvert"
+#define PREFERENCE_WIFI_ENABLED             "wifi"
+#define PREFERENCE_WIFI_SSID                "ssid"
+#define PREFERENCE_WIFI_PASS                "pass"
+#define PREFERENCE_WIFI_AP                  "ap"
+
 ////////////////////////////////
 // Bluetooth address of this ESP32 device. If you already have a Shadow system configured
 // the easiest thing is reuse the address of your USB Bluetooth dongle here. Alternatively,
 // you can use sixaxispair to pair your controllers with the ESP32.
 #define MY_BT_ADDR             "24:6f:28:44:a5:ae"
 //#define MY_BT_ADDR           "03:03:03:03:03:03"
+//#define MY_BT_ADDR             "84:C5:A6:61:AC:37"
 //#define MY_BT_ADDR           "b6:0c:76:94:05:b0" (PS4)
 
+////////////////////////////////
+// Specify the type of PS controller you are using (default PS3)
+#define DRIVE_CONTROLLER_TYPE   kPS3
+//#define DRIVE_CONTROLLER_TYPE   kPS4
 
 ////////////////////////////////
 // Assign a BT address here if you want to assign a specific controller as the drive stick
@@ -169,6 +188,7 @@
 #if 0
 ////////////////////////////////
 // Software serial TX pin used to send Marcduino commands.
+#include "SoftwareSerial.h"
 #define SERIAL_MARCDUINO_TX_PIN 5
 #endif
 
@@ -199,10 +219,10 @@
 #endif
 #include "ServoDispatchDirect.h"
 #include "ServoEasing.h"
-#include "SoftwareSerial.h"
 #include "Images.h"
 #include <Preferences.h>
 #ifdef USE_WIFI
+#include "wifi/WifiAccess.h"
 #include <ESPmDNS.h>
 #ifdef USE_WIFI_WEB
 #include "wifi/WifiWebServer.h"
@@ -215,14 +235,24 @@
 #endif
 
 ////////////////////////////////
+// Allow MY_BT_ADDR and DRIVE_STICK_BT_ADDR to be undefined above.
+
+#ifndef MY_BT_ADDR
+#define MY_BT_ADDR nullptr
+#endif
+#ifndef DRIVE_STICK_BT_ADDR
+#define DRIVE_STICK_BT_ADDR nullptr
+#endif
+
+////////////////////////////////
 
 // Group ID is used by the ServoSequencer and some ServoDispatch functions to
 // identify a group of servos.
 //
 //   Pin  Group ID,      Min,  Max
 const ServoSettings servoSettings[] PROGMEM = {
-    { LEFT_MOTOR_PWM,     1000, 2000, 0 },
-    { RIGHT_MOTOR_PWM,    1000, 2000, 0 }
+    { LEFT_MOTOR_PWM,     800, 2200, 0 },
+    { RIGHT_MOTOR_PWM,    800, 2200, 0 }
 #ifdef THROTTLE_MOTOR_PWM
     ,{ THROTTLE_MOTOR_PWM, 1000, 2000, 0 }
 #endif
@@ -252,7 +282,7 @@ void emergencyStop();
 class DriveController : public PSController
 {
 public:
-    DriveController(const char* mac = nullptr) : PSController(mac) {}
+    DriveController(const char* mac = nullptr) : PSController(mac, DRIVE_CONTROLLER_TYPE) {}
     virtual void notify() override
     {
         uint32_t currentTime = millis();
@@ -430,6 +460,10 @@ void emergencyStop()
     tankDrive.stop();
 }
 
+#ifdef USE_WIFI
+WifiAccess wifiAccess;
+#endif
+
 #ifdef USE_WIFI_WEB
 ////////////////////////////////
 // Web configurable parameters. Strongly advice not to change web settings while motors are running
@@ -467,42 +501,54 @@ WElement mainContents[] = {
         []() { return tankDrive.getTurnInverted(); },
         [](bool val) { tankDrive.stop(); tankDrive.setTurnInverted(val); } ),
     WButton("Save", "save", []() {
-        preferences.putFloat("maxspeed", tankDrive.getMaxSpeed());
-        preferences.putFloat("throttleaccscale", tankDrive.getThrottleAccelerationScale());
-        preferences.putFloat("throttledecscale", tankDrive.getThrottleDecelerationScale());
-        preferences.putFloat("turnaccscale", tankDrive.getTurnAccelerationScale());
-        preferences.putFloat("turndecscale", tankDrive.getTurnDecelerationScale());
-        preferences.putFloat("guestmaxspeed", tankDrive.getGuestSpeedModifier());
-        preferences.putBool("scaling", tankDrive.getScaling());
-        preferences.putBool("mixing", tankDrive.getChannelMixing());
-        preferences.putBool("throttleinvert", tankDrive.getThrottleInverted());
-        preferences.putBool("turninvert", tankDrive.getTurnInverted());
+        preferences.putFloat(PREFERENCE_DRIVE_SPEED, tankDrive.getMaxSpeed());
+        preferences.putFloat(PREFERENCE_DRIVE_THROTTLE_ACC_SCALE, tankDrive.getThrottleAccelerationScale());
+        preferences.putFloat(PREFERENCE_DRIVE_THROTTLE_DEC_SCALE, tankDrive.getThrottleDecelerationScale());
+        preferences.putFloat(PREFERENCE_DRIVE_TURN_ACC_SCALE, tankDrive.getTurnAccelerationScale());
+        preferences.putFloat(PREFERENCE_DRIVE_TURN_DEC_SCALE, tankDrive.getTurnDecelerationScale());
+        preferences.putFloat(PREFERENCE_DRIVE_GUEST_SPEED, tankDrive.getGuestSpeedModifier());
+        preferences.putBool(PREFERENCE_DRIVE_SCALING, tankDrive.getScaling());
+        preferences.putBool(PREFERENCE_DRIVE_MIXING, tankDrive.getChannelMixing());
+        preferences.putBool(PREFERENCE_DRIVE_THROTTLE_INVERT, tankDrive.getThrottleInverted());
+        preferences.putBool(PREFERENCE_DRIVE_TURN_INVERT, tankDrive.getTurnInverted());
     }),
     WButton("Restore", "restore", []() {
-        tankDrive.setMaxSpeed(preferences.getFloat("maxspeed", MAXIMUM_SPEED));
-        tankDrive.setThrottleAccelerationScale(preferences.getFloat("throttleaccscale", ACCELERATION_SCALE));
-        tankDrive.setThrottleDecelerationScale(preferences.getFloat("throttledecscale", DECELRATION_SCALE));
-        tankDrive.setTurnAccelerationScale(preferences.getFloat("turnaccscale", ACCELERATION_SCALE*2));
-        tankDrive.setTurnDecelerationScale(preferences.getFloat("turndecscale", DECELRATION_SCALE));
-        tankDrive.setScaling(preferences.getBool("scaling", SCALING));
-        tankDrive.setGuestSpeedModifier(preferences.getFloat("guestmaxspeed", MAXIMUM_GUEST_SPEED));
-        tankDrive.setChannelMixing(preferences.getBool("mixing", CHANNEL_MIXING));
-        tankDrive.setThrottleInverted(preferences.getBool("throttleinvert", THROTTLE_INVERTED));
-        tankDrive.setTurnInverted(preferences.getBool("turninvert", TURN_INVERTED));
+        tankDrive.setMaxSpeed(preferences.getFloat(PREFERENCE_DRIVE_SPEED, MAXIMUM_SPEED));
+        tankDrive.setThrottleAccelerationScale(preferences.getFloat(PREFERENCE_DRIVE_THROTTLE_ACC_SCALE, ACCELERATION_SCALE));
+        tankDrive.setThrottleDecelerationScale(preferences.getFloat(PREFERENCE_DRIVE_THROTTLE_DEC_SCALE, DECELRATION_SCALE));
+        tankDrive.setTurnAccelerationScale(preferences.getFloat(PREFERENCE_DRIVE_TURN_ACC_SCALE, ACCELERATION_SCALE*2));
+        tankDrive.setTurnDecelerationScale(preferences.getFloat(PREFERENCE_DRIVE_TURN_DEC_SCALE, DECELRATION_SCALE));
+        tankDrive.setGuestSpeedModifier(preferences.getFloat(PREFERENCE_DRIVE_GUEST_SPEED, MAXIMUM_GUEST_SPEED));
+        tankDrive.setScaling(preferences.getBool(PREFERENCE_DRIVE_SCALING, SCALING));
+        tankDrive.setChannelMixing(preferences.getBool(PREFERENCE_DRIVE_MIXING, CHANNEL_MIXING));
+        tankDrive.setThrottleInverted(preferences.getBool(PREFERENCE_DRIVE_THROTTLE_INVERT, THROTTLE_INVERTED));
+        tankDrive.setTurnInverted(preferences.getBool(PREFERENCE_DRIVE_TURN_INVERT, TURN_INVERTED));
     }),
     WImage("astromech", ASTROMECH_IMAGE)
 };
 WPage pages[] = {
     WPage("/", mainContents, SizeOfArray(mainContents))
 };
-WifiWebServer<1,SizeOfArray(pages)> motorWeb(pages, WIFI_AP_NAME, WIFI_AP_PASSPHRASE, WIFI_ACCESS_POINT);
+WifiWebServer<1,SizeOfArray(pages)> motorWeb(pages, wifiAccess);
 #endif
 
 void setup()
 {
     REELTWO_READY();
 
-    preferences.begin("rseries", false);
+    if (!preferences.begin("rseries", false))
+    {
+        DEBUG_PRINTLN("Failed to init prefs");
+    }
+
+#ifdef USE_WIFI_WEB
+    // In preparation for adding WiFi settings web page
+    wifiAccess.setNetworkCredentials(
+        preferences.getString(PREFERENCE_WIFI_SSID, WIFI_AP_NAME),
+        preferences.getString(PREFERENCE_WIFI_PASS, WIFI_AP_PASSPHRASE),
+        preferences.getBool(PREFERENCE_WIFI_AP, WIFI_ACCESS_POINT),
+        preferences.getBool(PREFERENCE_WIFI_ENABLED, WIFI_ENABLED));
+#endif
 
 #ifdef DRIVE_BAUD_RATE
     // Serial1 is used for drive system
@@ -524,6 +570,7 @@ void setup()
     String hostName = mac.substring(mac.length()-5, mac.length());
     hostName.remove(2, 1);
     hostName = "RSeries-"+hostName;
+    DEBUG_PRINTLN(WiFi.macAddress());
     DEBUG_PRINTLN(mac);
     DEBUG_PRINTLN(hostName);
 #ifdef USE_WIFI
