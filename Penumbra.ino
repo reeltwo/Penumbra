@@ -34,6 +34,15 @@
 //   To use a PWM based motor controller. Define:
 //     #define DRIVE_SYSTEM         DRIVE_SYSTEM_PWM
 //
+//   To use a PWM based motor controller. Define:
+//     #define DRIVE_SYSTEM         DRIVE_SYSTEM_PWM
+//
+//   Change this macro to change the dome motor system:
+//     #define DOME_DRIVE           DOME_DRIVE_SABER
+//
+//    To disable the dome motor support change it to:
+//      #define DOME_DRIVE          DOME_DRIVE_NONE
+//
 //   Define MY_BT_ADDR to the address stored in your PS3 Navication controller. Or update
 //   your PS3 Nav controller to match the BT address of your ESP32.
 //     #define MY_BT_ADDR          "24:6f:28:44:a5:ae"
@@ -46,8 +55,36 @@
 //    L1: Hard brake
 //    Joystick: Drive
 //
-//  All other buttons are unmapped and will print a debug message for you to repurpose
+//  PS3 Dome controller:
 //
+//    Joystick: Left/right spin dome
+//
+//  All other buttons are unmapped and will print a debug message for you to repurpose
+// =======================================================================================
+//
+// Gesture codes for buttons are as follows:
+//
+//    X: Cross
+//    O: Circle
+//    U: Up
+//    R: Down
+//    L: Left
+//    P: PS
+//
+// Gesture codes for the analog stick are as follows:
+//
+//    1 2 3
+//    4 5 6
+//    7 8 9
+//
+// For example:
+//
+//    GESTURE: UDU    (KeyPad: Up-Down-Up)
+//    GESTURE: 252    (Analog stick Up-Center-Up)
+//
+// You can disable gesture support by commenting or deleting the following:
+//
+// #define DOME_CONTROLLER_GESTURES
 // =======================================================================================
 //
 
@@ -76,7 +113,16 @@
 
 // Drive System selection
 #define DRIVE_SYSTEM         DRIVE_SYSTEM_ROBOTEQ_PWM_SERIAL
-//#define DRIVE_SYSTEM         DRIVE_SYSTEM_SABER
+//#define DRIVE_SYSTEM       DRIVE_SYSTEM_SABER
+
+#define DOME_DRIVE_NONE      0
+#define DOME_DRIVE_PWM       1
+#define DOME_DRIVE_SABER     2
+#define DOME_DRIVE           DOME_DRIVE_SABER
+
+// Enable dome controller gestures. Press joystick button L3. Will collect a series of button
+// presses and joystick movements. Press joystick button L3 to recognize gesture.
+#define DOME_CONTROLLER_GESTURES
 
 #ifdef USE_WIFI
 #define WIFI_ENABLED            true
@@ -109,20 +155,34 @@
 #define TURN_INVERTED        false  // set to true if turn should be inverted
 
 #if DRIVE_SYSTEM == DRIVE_SYSTEM_SABER
+#if DOME_DRIVE == DOME_DRIVE_SABER
+#define DOME_DRIVE_SERIAL    Serial1
+#endif
 #define CHANNEL_MIXING       true   // set to true premix channels before sending commands
 #define DRIVE_BAUD_RATE      9600
 #elif DRIVE_SYSTEM == DRIVE_SYSTEM_PWM
+#define NEED_DRIVE_PWM_PINS
 #define CHANNEL_MIXING       false  // set to false if motor controller will mix the channels
 #elif DRIVE_SYSTEM == DRIVE_SYSTEM_ROBOTEQ_PWM
+#define NEED_DRIVE_PWM_PINS
 #define CHANNEL_MIXING       false  // set to false if motor controller will mix the channels
 #elif DRIVE_SYSTEM == DRIVE_SYSTEM_ROBOTEQ_SERIAL
 #define DRIVE_BAUD_RATE      115200
 #define CHANNEL_MIXING       false  // set to false if motor controller will mix the channels
 #elif DRIVE_SYSTEM == DRIVE_SYSTEM_ROBOTEQ_PWM_SERIAL
+#define NEED_DRIVE_PWM_PINS
 #define DRIVE_BAUD_RATE      115200
 #define CHANNEL_MIXING       false  // set to false if motor controller will mix the channels
 #else
 #error Unsupported DRIVE_SYSTEM
+#endif
+
+#ifndef DRIVE_BAUD_RATE
+#define DRIVE_BAUD_RATE      9600
+#endif
+
+#if DOME_DRIVE == DOME_DRIVE_SABER && !defined(DOME_DRIVE_SERIAL)
+#define DOME_DRIVE_SERIAL    Serial2
 #endif
 
 #ifndef MARCDUINO_BAUD_RATE
@@ -164,7 +224,8 @@
 
 ////////////////////////////////
 // Specify the type of PS controller you are using (default PS3)
-#define DRIVE_CONTROLLER_TYPE   kPS3
+#define DRIVE_CONTROLLER_TYPE   kPS3Nav
+//#define DRIVE_CONTROLLER_TYPE   kPS3
 //#define DRIVE_CONTROLLER_TYPE   kPS4
 
 ////////////////////////////////
@@ -172,6 +233,14 @@
 // otherwise it will be first come first serve
 #define DRIVE_STICK_BT_ADDR     nullptr
 //#define DRIVE_STICK_BT_ADDR  "00:07:04:09:b4:05"
+
+////////////////////////////////
+// Assign a BT address here if you want to assign a specific controller as the dome stick
+// otherwise it will be first come first serve
+#define DOME_STICK_BT_ADDR      nullptr
+//#define DOME_STICK_BT_ADDR   "e0:ae:5e:9b:e1:04"
+//#define DOME_STICK_BT_ADDR  "8c:41:f2:83:49:eb"
+//#define DOME_STICK_BT_ADDR  "a4:15:66:84:45:ee"
 
 ////////////////////////////////
 // Serial1 pins used to communicate with the motor controller
@@ -192,15 +261,26 @@
 #define SERIAL_MARCDUINO_TX_PIN 5
 #endif
 
+#ifdef NEED_DRIVE_PWM_PINS
 ////////////////////////////////
-// 
+// PWM pin for left foot motor
 #define LEFT_MOTOR_PWM      23
+
+////////////////////////////////
+// PWM pin for right foot motor
 #define RIGHT_MOTOR_PWM     22
 
 ////////////////////////////////
 // Optional Roboteq pin needs a Microbasic script running on the Roboteq controller to change the throttle.
 // If the Microbasic script is not runnig this PWM signal will have no effect.
 //#define THROTTLE_MOTOR_PWM  21
+#endif
+
+#if DOME_DRIVE == DOME_DRIVE_PWM
+////////////////////////////////
+// PWM pin used to control the dome motor
+#define DOME_MOTOR_PWM      27
+#endif
 
 ////////////////////////////////
 
@@ -216,6 +296,9 @@
 #include "drive/TankDriveRoboteq.h"
 #if DRIVE_SYSTEM == DRIVE_SYSTEM_SABER
 #include "drive/TankDriveSabertooth.h"
+#endif
+#if DOME_DRIVE == DOME_DRIVE_SABER
+#include "drive/DomeDriveSabertooth.h"
 #endif
 #include "ServoDispatchDirect.h"
 #include "ServoEasing.h"
@@ -243,6 +326,9 @@
 #ifndef DRIVE_STICK_BT_ADDR
 #define DRIVE_STICK_BT_ADDR nullptr
 #endif
+#ifndef DOME_STICK_BT_ADDR
+#define DOME_STICK_BT_ADDR nullptr
+#endif
 
 ////////////////////////////////
 
@@ -251,10 +337,28 @@
 //
 //   Pin  Group ID,      Min,  Max
 const ServoSettings servoSettings[] PROGMEM = {
+#ifdef NEED_DRIVE_PWM_PINS
     { LEFT_MOTOR_PWM,     800, 2200, 0 },
     { RIGHT_MOTOR_PWM,    800, 2200, 0 }
+ #define LEFT_MOTOR_PWM_INDEX  0
+ #define RIGHT_MOTOR_PWM_INDEX 1
+ #define LAST_PWM_INDEX RIGHT_MOTOR_PWM_INDEX
+ #define DRIVE_PWM_SETTINGS LEFT_MOTOR_PWM_INDEX, RIGHT_MOTOR_PWM_INDEX
 #ifdef THROTTLE_MOTOR_PWM
     ,{ THROTTLE_MOTOR_PWM, 1000, 2000, 0 }
+ #define THROTTLE_PWM_INDEX LAST_PWM_INDEX+1
+ #undef LAST_PWM_INDEX
+ #define LAST_PWM_INDEX THROTTLE_PWM_INDEX
+ #undef DRIVE_PWM_SETTINGS
+ #define DRIVE_PWM_SETTINGS LEFT_MOTOR_PWM_INDEX, RIGHT_MOTOR_PWM_INDEX, THROTTLE_PWM_INDEX
+#endif
+#endif
+#if DOME_DRIVE == DOME_DRIVE_PWM
+    ,{ DOME_MOTOR_PWM,    800, 2200, 0 }
+ #define DOME_MOTOR_PWM_INDEX LAST_PWM_INDEX+1
+ #undef LAST_PWM_INDEX
+ #define LAST_PWM_INDEX DOME_MOTOR_PWM_INDEX
+ #define DOME_PWM_SETTINGS DOME_MOTOR_PWM_INDEX
 #endif
 };
 
@@ -276,6 +380,9 @@ SoftwareSerial marcSerial;
 void enableController();
 void disableController();
 void emergencyStop();
+void enableDomeController();
+void disableDomeController();
+void domeEmergencyStop();
 
 ////////////////////////////////////
 
@@ -393,8 +500,230 @@ public:
 
     uint32_t fLastTime = 0;
 };
-
 DriveController driveStick(DRIVE_STICK_BT_ADDR);
+
+#if DOME_DRIVE != DOME_DRIVE_NONE && DRIVE_CONTROLLER_TYPE == kPS3Nav
+// If dome drive is enabled and we are using PS3 Nav Controllers
+class DomeController : public PSController
+{
+public:
+    DomeController(const char* mac = nullptr) : PSController(mac) {}
+    virtual void notify() override
+    {
+        uint32_t currentTime = millis();
+        uint32_t lagTime = (currentTime > fLastTime) ? currentTime - fLastTime : 0;
+        if (lagTime > 5000)
+        {
+            DEBUG_PRINTLN("More than 5 seconds. Disconnect");
+            domeEmergencyStop();
+            disconnect();
+        }
+        else if (lagTime > 300)
+        {
+            DEBUG_PRINTLN("It has been 300ms. Shutdown motors");
+            domeEmergencyStop();
+        }
+        else
+        {
+            process();
+        }
+        fLastTime = currentTime;
+    }
+
+    void process()
+    {
+        if (!fGestureCollect)
+        {
+        #ifdef DOME_CONTROLLER_GESTURES
+            if (event.button_up.l3)
+            {
+                DEBUG_PRINTLN("GESTURE START COLLECTING\n");
+                disableDomeController();
+                fGestureCollect = true;
+                fGesturePtr = fGestureBuffer;
+                fGestureTimeOut = millis() + GESTURE_TIMEOUT_MS;
+            }
+        #else
+            // Event handling map these actions for your droid.
+            // You can choose to either respond to key down or key up
+            if (event.button_down.l3)
+            {
+                DEBUG_PRINTLN("DOME L3 DOWN");
+            }
+            else if (event.button_up.l3)
+            {
+                DEBUG_PRINTLN("DOME L3 UP");
+            }
+        #endif
+            if (event.button_down.cross)
+            {
+                DEBUG_PRINTLN("DOME X DOWN");
+            }
+            else if (event.button_up.cross)
+            {
+                DEBUG_PRINTLN("DOME X UP");
+            }
+
+            if (event.button_down.circle)
+            {
+                DEBUG_PRINTLN("DOME O DOWN");
+            }
+            else if (event.button_up.circle)
+            {
+                DEBUG_PRINTLN("DOME O UP");
+            }
+
+            if (event.button_down.up)
+            {
+                DEBUG_PRINTLN("DOME Started pressing the up button");
+            }
+            else if (event.button_up.up)
+            {
+                DEBUG_PRINTLN("DOME Released the up button");
+            }
+
+            if (event.button_down.right)
+            {
+                DEBUG_PRINTLN("DOME Started pressing the right button");
+            }
+            else if (event.button_up.right)
+            {
+                DEBUG_PRINTLN("DOME Released the right button");
+            }
+
+            if (event.button_down.down)
+            {
+                DEBUG_PRINTLN("DOME Started pressing the down button");
+            }
+            else if (event.button_up.down)
+            {
+                DEBUG_PRINTLN("DOME Released the down button");
+            }
+
+            if (event.button_down.left)
+            {
+                DEBUG_PRINTLN("DOME Started pressing the left button");
+            }
+            else if (event.button_up.left)
+            {
+                DEBUG_PRINTLN("DOME Released the left button");
+            }
+
+            if (event.button_down.ps)
+            {
+                DEBUG_PRINTLN("DOME PS DOWN");
+            }
+            else if (event.button_up.ps)
+            {
+                DEBUG_PRINTLN("DOME PS UP");
+            }
+            return;
+        }
+        else if (fGestureTimeOut < millis())
+        {
+            DEBUG_PRINTLN("GESTURE TIMEOUT\n");
+            enableDomeController();
+            fGesturePtr = fGestureBuffer;
+            fGestureCollect = false;
+        }
+        else
+        {
+            if (event.button_up.l3)
+            {
+                // delete trailing '5' from gesture
+                unsigned glen = strlen(fGestureBuffer);
+                if (glen > 0 && fGestureBuffer[glen-1] == '5')
+                    fGestureBuffer[glen-1] = 0;
+                DEBUG_PRINT("GESTURE: "); DEBUG_PRINTLN(fGestureBuffer);
+                enableDomeController();
+                fGestureCollect = false;
+            }
+            if (event.button_up.cross)
+                addGesture('X');
+            if (event.button_up.circle)
+                addGesture('O');
+            if (event.button_up.up)
+                addGesture('U');
+            if (event.button_up.right)
+                addGesture('R');
+            if (event.button_up.down)
+                addGesture('D');
+            if (event.button_up.left)
+                addGesture('L');
+            if (event.button_up.ps)
+                addGesture('P');
+            if (!fGestureAxis)
+            {
+                if (abs(state.analog.stick.lx) > 50 && abs(state.analog.stick.ly) > 50)
+                {
+                    // Diagonal
+                    if (state.analog.stick.lx < 0)
+                        fGestureAxis = (state.analog.stick.ly < 0) ? '1' : '7';
+                    else
+                        fGestureAxis = (state.analog.stick.ly < 0) ? '3' : '9';
+                    addGesture(fGestureAxis);
+                }
+                else if (abs(state.analog.stick.lx) > 100)
+                {
+                    // Horizontal
+                    fGestureAxis = (state.analog.stick.lx < 0) ? '4' : '6';
+                    addGesture(fGestureAxis);
+                }
+                else if (abs(state.analog.stick.ly) > 100)
+                {
+                    // Vertical
+                    fGestureAxis = (state.analog.stick.ly < 0) ? '2' : '8';
+                    addGesture(fGestureAxis);
+                }
+            }
+            if (fGestureAxis && abs(state.analog.stick.lx) < 10 && abs(state.analog.stick.ly) < 10)
+            {
+                addGesture('5');
+                fGestureAxis = 0;   
+            }
+        }
+    }
+
+    virtual void onConnect() override
+    {
+        DEBUG_PRINTLN("Dome Stick Connected");
+        setPlayer(2);
+        enableDomeController();
+        fLastTime = millis();
+    }
+    
+    virtual void onDisconnect() override
+    {
+        DEBUG_PRINTLN("Dome Stick Disconnected");
+        disableDomeController();
+    }
+
+    uint32_t fLastTime = 0;
+
+protected:
+    bool fGestureCollect = false;
+    char fGestureBuffer[MAX_GESTURE_LENGTH+1];
+    char* fGesturePtr = fGestureBuffer;
+    char fGestureAxis = 0;
+    uint32_t fGestureTimeOut = 0;
+
+    void addGesture(char ch)
+    {
+        if (fGesturePtr-fGestureBuffer < sizeof(fGestureBuffer)-1)
+        {
+            *fGesturePtr++ = ch;
+            *fGesturePtr = '\0';
+            fGestureTimeOut = millis() + GESTURE_TIMEOUT_MS;
+        }
+    }
+};
+DomeController domeStick(DOME_STICK_BT_ADDR);
+#elif DOME_DRIVE != DOME_DRIVE_NONE
+// Dome Drive enabled using either PS3 or PS4 controller
+// the right side of the controller will be used to control the dome (left/right)
+#define domeStick driveStick
+#endif
+
 #ifdef USE_RADIO
 RadioController radioStick(Serial2);
 #endif
@@ -408,21 +737,13 @@ TankDriveSabertooth tankDrive(128, Serial1, driveStick);
 //    servo index 0 (LEFT_MOTOR_PWM)
 //    servo index 1 (RIGHT_MOTOR_PWM)
 //    servo index 2 (THROTTLE_MOTOR_PWM)
-#ifdef THROTTLE_MOTOR_PWM
-TankDrivePWM tankDrive(servoDispatch, 0, 1, 2, driveStick);
-#else
-TankDrivePWM tankDrive(servoDispatch, 0, 1, driveStick);
-#endif
+TankDrivePWM tankDrive(servoDispatch, DRIVE_PWM_SETTINGS, driveStick);
 #elif DRIVE_SYSTEM == DRIVE_SYSTEM_ROBOTEQ_PWM
 // Tank Drive assign:
 //    servo index 0 (LEFT_MOTOR_PWM)
 //    servo index 1 (RIGHT_MOTOR_PWM)
 //    servo index 2 (THROTTLE_MOTOR_PWM)
-#ifdef THROTTLE_MOTOR_PWM
-TankDriveRoboteq tankDrive(servoDispatch, 0, 1, 2, driveStick);
-#else
-TankDriveRoboteq tankDrive(servoDispatch, 0, 1, driveStick);
-#endif
+TankDriveRoboteq tankDrive(servoDispatch, DRIVE_PWM_SETTINGS, driveStick);
 #elif DRIVE_SYSTEM == DRIVE_SYSTEM_ROBOTEQ_SERIAL
 // Tank Drive assign:
 //    servo index 0 (LEFT_MOTOR_PWM)
@@ -435,13 +756,15 @@ TankDriveRoboteq tankDrive(Serial1, driveStick);
 //    servo index 1 (RIGHT_MOTOR_PWM)
 //    servo index 2 (THROTTLE_MOTOR_PWM)
 //    Serial1 for Roboteq serial commands
-#ifdef THROTTLE_MOTOR_PWM
-TankDriveRoboteq tankDrive(Serial1, servoDispatch, 0, 1, 2, driveStick);
-#else
-TankDriveRoboteq tankDrive(Serial1, servoDispatch, 0, 1, driveStick);
-#endif
+TankDriveRoboteq tankDrive(Serial1, servoDispatch, DRIVE_PWM_SETTINGS, driveStick);
 #else
 #error Unsupported DRIVE_SYSTEM
+#endif
+
+#if DOME_DRIVE == DOME_DRIVE_PWM
+DomeDrivePWM domeDrive(servoDispatch, DOME_PWM_SETTINGS, domeStick);
+#elif DOME_DRIVE == DOME_DRIVE_SABER
+DomeDriveSabertooth domeDrive(129, DOME_DRIVE_SERIAL, domeStick);
 #endif
 
 void enableController()
@@ -458,6 +781,28 @@ void disableController()
 void emergencyStop()
 {
     tankDrive.stop();
+}
+
+void enableDomeController()
+{
+#if DOME_DRIVE != DOME_DRIVE_NONE
+    domeDrive.setEnable(true);
+#endif
+}
+
+void disableDomeController()
+{
+#if DOME_DRIVE != DOME_DRIVE_NONE
+    domeEmergencyStop();
+    domeDrive.setEnable(false);
+#endif
+}
+
+void domeEmergencyStop()
+{
+#if DOME_DRIVE != DOME_DRIVE_NONE
+    domeDrive.stop();
+#endif
 }
 
 #ifdef USE_WIFI
@@ -634,6 +979,9 @@ void setup()
 #ifdef USE_WIFI_WEB
     // For safety we will stop the motors if the web client is connected
     motorWeb.setConnect([]() {
+    #if DOME_DRIVE != DOME_DRIVE_NONE
+        domeDrive.stop();
+    #endif
         tankDrive.stop();
     });
 #endif
