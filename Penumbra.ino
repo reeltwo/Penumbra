@@ -118,7 +118,7 @@
 #define DOME_DRIVE_NONE      0
 #define DOME_DRIVE_PWM       1
 #define DOME_DRIVE_SABER     2
-#define DOME_DRIVE           DOME_DRIVE_SABER
+#define DOME_DRIVE           DOME_DRIVE_PWM
 
 // Enable dome controller gestures. Press joystick button L3. Will collect a series of button
 // presses and joystick movements. Press joystick button L3 to recognize gesture.
@@ -273,7 +273,7 @@
 ////////////////////////////////
 // Optional Roboteq pin needs a Microbasic script running on the Roboteq controller to change the throttle.
 // If the Microbasic script is not runnig this PWM signal will have no effect.
-//#define THROTTLE_MOTOR_PWM  21
+#define THROTTLE_MOTOR_PWM  21
 #endif
 
 #if DOME_DRIVE == DOME_DRIVE_PWM
@@ -297,8 +297,11 @@
 #if DRIVE_SYSTEM == DRIVE_SYSTEM_SABER
 #include "drive/TankDriveSabertooth.h"
 #endif
+#if DOME_DRIVE != DOME_DRIVE_NONE
+#include "drive/DomeDrivePWM.h"
 #if DOME_DRIVE == DOME_DRIVE_SABER
 #include "drive/DomeDriveSabertooth.h"
+#endif
 #endif
 #include "ServoDispatchDirect.h"
 #include "ServoEasing.h"
@@ -342,22 +345,26 @@ const ServoSettings servoSettings[] PROGMEM = {
     { RIGHT_MOTOR_PWM,    800, 2200, 0 }
  #define LEFT_MOTOR_PWM_INDEX  0
  #define RIGHT_MOTOR_PWM_INDEX 1
- #define LAST_PWM_INDEX RIGHT_MOTOR_PWM_INDEX
  #define DRIVE_PWM_SETTINGS LEFT_MOTOR_PWM_INDEX, RIGHT_MOTOR_PWM_INDEX
 #ifdef THROTTLE_MOTOR_PWM
     ,{ THROTTLE_MOTOR_PWM, 1000, 2000, 0 }
- #define THROTTLE_PWM_INDEX LAST_PWM_INDEX+1
- #undef LAST_PWM_INDEX
- #define LAST_PWM_INDEX THROTTLE_PWM_INDEX
+ #define THROTTLE_PWM_INDEX 2
  #undef DRIVE_PWM_SETTINGS
  #define DRIVE_PWM_SETTINGS LEFT_MOTOR_PWM_INDEX, RIGHT_MOTOR_PWM_INDEX, THROTTLE_PWM_INDEX
 #endif
 #endif
 #if DOME_DRIVE == DOME_DRIVE_PWM
-    ,{ DOME_MOTOR_PWM,    800, 2200, 0 }
- #define DOME_MOTOR_PWM_INDEX LAST_PWM_INDEX+1
- #undef LAST_PWM_INDEX
- #define LAST_PWM_INDEX DOME_MOTOR_PWM_INDEX
+ #ifdef NEED_DRIVE_PWM_PINS
+    ,
+    #ifdef THROTTLE_MOTOR_PWM
+     #define DOME_MOTOR_PWM_INDEX 3
+    #else
+     #define DOME_MOTOR_PWM_INDEX 2
+    #endif
+ #else
+   #define DOME_MOTOR_PWM_INDEX 0
+ #endif
+    { DOME_MOTOR_PWM,    800, 2200, 0 }
  #define DOME_PWM_SETTINGS DOME_MOTOR_PWM_INDEX
 #endif
 };
