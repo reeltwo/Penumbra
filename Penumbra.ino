@@ -95,6 +95,7 @@
 // Enable WiFi
 #define USE_WIFI
 #ifdef USE_WIFI
+#define USE_MDNS
 // Enable OTA update
 //#define USE_OTA
 // Enable Web interface
@@ -881,7 +882,7 @@ WElement mainContents[] = {
 WPage pages[] = {
     WPage("/", mainContents, SizeOfArray(mainContents))
 };
-WifiWebServer<1,SizeOfArray(pages)> motorWeb(pages, wifiAccess);
+WifiWebServer<1,SizeOfArray(pages)> webServer(pages, wifiAccess);
 #endif
 
 void setup()
@@ -917,19 +918,28 @@ void setup()
     SetupEvent::ready();
     PSController::startListening(MY_BT_ADDR);
 
-    /*use mdns for host name resolution*/
-    String mac = PSController::getDeviceAddress();
-    String hostName = mac.substring(mac.length()-5, mac.length());
-    hostName.remove(2, 1);
-    hostName = "RSeries-"+hostName;
-    DEBUG_PRINTLN(WiFi.macAddress());
-    DEBUG_PRINTLN(mac);
-    DEBUG_PRINTLN(hostName);
-#ifdef USE_WIFI
-    if (!MDNS.begin(hostName.c_str()))
-    {
-        DEBUG_PRINTLN("Error setting up MDNS responder!");
-    }
+#ifdef USE_WIFI_WEB
+    wifiAccess.notifyWifiConnected([](WifiAccess &wifi) {
+        Serial.print("Connect to http://"); Serial.println(wifi.getIPAddress());
+    #ifdef USE_MDNS
+        // No point in setting up mDNS if R2 is the access point
+        if (!wifi.isSoftAP())
+        {
+            String mac = wifi.getMacAddress();
+            String hostName = mac.substring(mac.length()-5, mac.length());
+            hostName.remove(2, 1);
+            hostName = "RSeries-"+hostName;
+            if (webServer.enabled())
+            {
+                Serial.print("Host name: "); Serial.println(hostName);
+                if (!MDNS.begin(hostName.c_str()))
+                {
+                    DEBUG_PRINTLN("Error setting up MDNS responder!");
+                }
+            }
+        }
+    #endif
+    });
 #endif
 
 #ifdef USE_OTA
@@ -985,11 +995,9 @@ void setup()
 
 #ifdef USE_WIFI_WEB
     // For safety we will stop the motors if the web client is connected
-    motorWeb.setConnect([]() {
-    #if DOME_DRIVE != DOME_DRIVE_NONE
-        domeDrive.stop();
-    #endif
-        tankDrive.stop();
+    webServer.setConnect([]() {
+        // Callback for each connected web client
+        // DEBUG_PRINTLN("Hello");
     });
 #endif
     // tankDrive.enterCommandMode();
@@ -1031,6 +1039,6 @@ void loop()
     ArduinoOTA.handle();
 #endif
 #ifdef USE_WIFI_WEB
-    motorWeb.handle();
+    webServer.handle();
 #endif
 }
