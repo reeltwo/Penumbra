@@ -25,26 +25,6 @@
 #define THROTTLE_INVERTED    false  // set to true if throttle should be inverted
 #define TURN_INVERTED        false  // set to true if turn should be inverted
 
-// Baud rates
-
-#ifndef DRIVE_BAUD_RATE
-  #define DRIVE_BAUD_RATE      9600
-#endif
-
-#ifndef MARCDUINO_BAUD_RATE
-  #define MARCDUINO_BAUD_RATE  9600
-#endif
-
-// Gesture settings
-
-#ifndef MAX_GESTURE_LENGTH
-  #define MAX_GESTURE_LENGTH   20
-#endif
-
-#ifndef GESTURE_TIMEOUT_MS
-  #define GESTURE_TIMEOUT_MS   2000
-#endif
-
 // Penumbra preferences
 
 #define PREFERENCE_DRIVE_SPEED              "maxspeed"
