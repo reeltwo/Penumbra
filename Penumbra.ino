@@ -87,211 +87,7 @@
 // #define DOME_CONTROLLER_GESTURES
 // =======================================================================================
 //
-
-////////////////////////////////
-// CONFIGURATION OPTIONS
-////////////////////////////////
-
-// Enable WiFi
-#define USE_WIFI
-#ifdef USE_WIFI
-#define USE_MDNS
-// Enable OTA update
-//#define USE_OTA
-// Enable Web interface
-#define USE_WIFI_WEB
-#endif
-
-// Optional SYK base radio controller
-//#define USE_RADIO
-
-// Drive System options
-#define DRIVE_SYSTEM_PWM                1
-#define DRIVE_SYSTEM_SABER              2
-#define DRIVE_SYSTEM_ROBOTEQ_PWM        3
-#define DRIVE_SYSTEM_ROBOTEQ_SERIAL     4
-#define DRIVE_SYSTEM_ROBOTEQ_PWM_SERIAL 5
-
-// Drive System selection
-#define DRIVE_SYSTEM         DRIVE_SYSTEM_ROBOTEQ_PWM_SERIAL
-//#define DRIVE_SYSTEM       DRIVE_SYSTEM_SABER
-
-#define DOME_DRIVE_NONE      0
-#define DOME_DRIVE_PWM       1
-#define DOME_DRIVE_SABER     2
-#define DOME_DRIVE           DOME_DRIVE_PWM
-
-// Enable dome controller gestures. Press joystick button L3. Will collect a series of button
-// presses and joystick movements. Press joystick button L3 to recognize gesture.
-#define DOME_CONTROLLER_GESTURES
-
-#ifdef USE_WIFI
-#define WIFI_ENABLED            true
-// Set these to your desired credentials.
-#define WIFI_AP_NAME            "R2D2"
-#define WIFI_AP_PASSPHRASE      "Astromech"
-#define WIFI_ACCESS_POINT       true  /* true if access point: false if joining existing wifi */
-// Alternatively join an existing AP
-//#define WIFI_AP_NAME          "MyWifi"
-//#define WIFI_AP_PASSPHRASE    "MyPassword"
-//#define WIFI_ACCESS_POINT     false  /* true if access point: false if joining existing wifi */
-#endif
-
-////////////////////////////////
-// Default drive system configuration. Can be changed through web interface and stored in flash
-
-// Top speed limiter
-#define MAXIMUM_SPEED        0.5f   // percentage 0.0 - 1.0. default 50%
-// Top speed for a guest joystick (if used)
-#define MAXIMUM_GUEST_SPEED  0.3f   // percentage 0.0 - 1.0. default 30%
-
-// Scale value of 1 means instant. Scale value of 100 means that the throttle will increase 1/100 every 25ms
-#define ACCELERATION_SCALE   100 
-// Scale value of 1 means instant. Scale value of 20 means that the throttle will decrease 1/20 every 25ms
-#define DECELRATION_SCALE    20
-
-#define SCALING              true   // set to true if acceleration/decelleration should be applied
-
-#define THROTTLE_INVERTED    false  // set to true if throttle should be inverted
-#define TURN_INVERTED        false  // set to true if turn should be inverted
-
-#if DRIVE_SYSTEM == DRIVE_SYSTEM_SABER
-#if DOME_DRIVE == DOME_DRIVE_SABER
-#define DOME_DRIVE_SERIAL    Serial1
-#endif
-#define CHANNEL_MIXING       true   // set to true premix channels before sending commands
-#define DRIVE_BAUD_RATE      9600
-#elif DRIVE_SYSTEM == DRIVE_SYSTEM_PWM
-#define NEED_DRIVE_PWM_PINS
-#define CHANNEL_MIXING       false  // set to false if motor controller will mix the channels
-#elif DRIVE_SYSTEM == DRIVE_SYSTEM_ROBOTEQ_PWM
-#define NEED_DRIVE_PWM_PINS
-#define CHANNEL_MIXING       false  // set to false if motor controller will mix the channels
-#elif DRIVE_SYSTEM == DRIVE_SYSTEM_ROBOTEQ_SERIAL
-#define DRIVE_BAUD_RATE      115200
-#define CHANNEL_MIXING       false  // set to false if motor controller will mix the channels
-#elif DRIVE_SYSTEM == DRIVE_SYSTEM_ROBOTEQ_PWM_SERIAL
-#define NEED_DRIVE_PWM_PINS
-#define DRIVE_BAUD_RATE      115200
-#define CHANNEL_MIXING       false  // set to false if motor controller will mix the channels
-#else
-#error Unsupported DRIVE_SYSTEM
-#endif
-
-#ifndef DRIVE_BAUD_RATE
-#define DRIVE_BAUD_RATE      9600
-#endif
-
-#if DOME_DRIVE == DOME_DRIVE_SABER && !defined(DOME_DRIVE_SERIAL)
-#define DOME_DRIVE_SERIAL    Serial2
-#endif
-
-#ifndef MARCDUINO_BAUD_RATE
-#define MARCDUINO_BAUD_RATE  9600
-#endif
-
-#ifndef MAX_GESTURE_LENGTH
-#define MAX_GESTURE_LENGTH   20
-#endif
-
-#ifndef GESTURE_TIMEOUT_MS
-#define GESTURE_TIMEOUT_MS   2000
-#endif
-
-/* Penumbra preferences */
-#define PREFERENCE_DRIVE_SPEED              "maxspeed"
-#define PREFERENCE_DRIVE_THROTTLE_ACC_SCALE "throttleaccscale"
-#define PREFERENCE_DRIVE_THROTTLE_DEC_SCALE "throttledecscale"
-#define PREFERENCE_DRIVE_TURN_ACC_SCALE     "turnaccscale"
-#define PREFERENCE_DRIVE_TURN_DEC_SCALE     "turndecscale"
-#define PREFERENCE_DRIVE_GUEST_SPEED        "guestmaxspeed"
-#define PREFERENCE_DRIVE_SCALING            "scaling"
-#define PREFERENCE_DRIVE_MIXING             "mixing"
-#define PREFERENCE_DRIVE_THROTTLE_INVERT    "throttleinvert"
-#define PREFERENCE_DRIVE_TURN_INVERT        "turninvert"
-#define PREFERENCE_WIFI_ENABLED             "wifi"
-#define PREFERENCE_WIFI_SSID                "ssid"
-#define PREFERENCE_WIFI_PASS                "pass"
-#define PREFERENCE_WIFI_AP                  "ap"
-
-////////////////////////////////
-// Bluetooth address of this ESP32 device. If you already have a Shadow system configured
-// the easiest thing is reuse the address of your USB Bluetooth dongle here. Alternatively,
-// you can use sixaxispair to pair your controllers with the ESP32.
-#define MY_BT_ADDR             "24:6f:28:44:a5:ae"
-//#define MY_BT_ADDR           "03:03:03:03:03:03"
-//#define MY_BT_ADDR             "84:C5:A6:61:AC:37"
-//#define MY_BT_ADDR           "b6:0c:76:94:05:b0" (PS4)
-
-////////////////////////////////
-// Specify the type of PS controller you are using (default PS3)
-#define DRIVE_CONTROLLER_TYPE   kPS3Nav
-//#define DRIVE_CONTROLLER_TYPE   kPS3
-//#define DRIVE_CONTROLLER_TYPE   kPS4
-
-////////////////////////////////
-// Assign a BT address here if you want to assign a specific controller as the drive stick
-// otherwise it will be first come first serve
-#define DRIVE_STICK_BT_ADDR     nullptr
-//#define DRIVE_STICK_BT_ADDR  "00:07:04:09:b4:05"
-
-////////////////////////////////
-// Assign a BT address here if you want to assign a specific controller as the dome stick
-// otherwise it will be first come first serve
-#define DOME_STICK_BT_ADDR      nullptr
-//#define DOME_STICK_BT_ADDR   "e0:ae:5e:9b:e1:04"
-//#define DOME_STICK_BT_ADDR  "8c:41:f2:83:49:eb"
-//#define DOME_STICK_BT_ADDR  "a4:15:66:84:45:ee"
-
-////////////////////////////////
-// Serial1 pins used to communicate with the motor controller
-#define SERIAL1_RX_PIN 4
-#define SERIAL1_TX_PIN 2
-
-#ifdef USE_RADIO
-////////////////////////////////
-// Serial2 pins used to communicate with SYK Radio if used.
-#define SERIAL2_RX_PIN 18
-#define SERIAL2_TX_PIN 19
-#endif
-
-#if 0
-////////////////////////////////
-// Software serial TX pin used to send Marcduino commands.
-#include "SoftwareSerial.h"
-#define SERIAL_MARCDUINO_TX_PIN 5
-#endif
-
-#ifdef NEED_DRIVE_PWM_PINS
-////////////////////////////////
-// PWM pin for left foot motor
-#define LEFT_MOTOR_PWM      23
-
-////////////////////////////////
-// PWM pin for right foot motor
-#define RIGHT_MOTOR_PWM     22
-
-////////////////////////////////
-// Optional Roboteq pin needs a Microbasic script running on the Roboteq controller to change the throttle.
-// If the Microbasic script is not runnig this PWM signal will have no effect.
-#define THROTTLE_MOTOR_PWM  21
-#endif
-
-#if DOME_DRIVE == DOME_DRIVE_PWM
-////////////////////////////////
-// PWM pin used to control the dome motor
-#define DOME_MOTOR_PWM      27
-#endif
-
-////////////////////////////////
-
-#define USE_DEBUG
-//#define USE_MOTOR_DEBUG
-//#define USE_SERVO_DEBUG
-//#define USE_VERBOSE_SERVO_DEBUG
-
-////////////////////////////////
-
+#include "User_Settings.h"
 #include "ReelTwo.h"
 #include "drive/TankDrivePWM.h"
 #include "drive/TankDriveRoboteq.h"
@@ -306,7 +102,7 @@
 #endif
 #include "ServoDispatchDirect.h"
 #include "ServoEasing.h"
-#include "Images.h"
+#include "src/Images.h"
 #include <Preferences.h>
 #ifdef USE_WIFI
 #include "wifi/WifiAccess.h"
@@ -322,54 +118,23 @@
 #endif
 
 ////////////////////////////////
-// Allow MY_BT_ADDR and DRIVE_STICK_BT_ADDR to be undefined above.
-
-#ifndef MY_BT_ADDR
-#define MY_BT_ADDR nullptr
-#endif
-#ifndef DRIVE_STICK_BT_ADDR
-#define DRIVE_STICK_BT_ADDR nullptr
-#endif
-#ifndef DOME_STICK_BT_ADDR
-#define DOME_STICK_BT_ADDR nullptr
-#endif
-
-////////////////////////////////
 
 // Group ID is used by the ServoSequencer and some ServoDispatch functions to
 // identify a group of servos.
 //
-//   Pin  Group ID,      Min,  Max
+//     Pin,                Min,  Max,  Group ID
 const ServoSettings servoSettings[] PROGMEM = {
 #ifdef NEED_DRIVE_PWM_PINS
-    { LEFT_MOTOR_PWM,     800, 2200, 0 },
-    { RIGHT_MOTOR_PWM,    800, 2200, 0 }
- #define LEFT_MOTOR_PWM_INDEX  0
- #define RIGHT_MOTOR_PWM_INDEX 1
- #define DRIVE_PWM_SETTINGS LEFT_MOTOR_PWM_INDEX, RIGHT_MOTOR_PWM_INDEX
-#ifdef THROTTLE_MOTOR_PWM
+     { LEFT_MOTOR_PWM,      800, 2200, 0 }
+    ,{ RIGHT_MOTOR_PWM,     800, 2200, 0 }
+  #ifdef THROTTLE_MOTOR_PWM
     ,{ THROTTLE_MOTOR_PWM, 1000, 2000, 0 }
- #define THROTTLE_PWM_INDEX 2
- #undef DRIVE_PWM_SETTINGS
- #define DRIVE_PWM_SETTINGS LEFT_MOTOR_PWM_INDEX, RIGHT_MOTOR_PWM_INDEX, THROTTLE_PWM_INDEX
-#endif
-#endif
-#if DOME_DRIVE == DOME_DRIVE_PWM
- #ifdef NEED_DRIVE_PWM_PINS
-    ,
-    #ifdef THROTTLE_MOTOR_PWM
-     #define DOME_MOTOR_PWM_INDEX 3
-    #else
-     #define DOME_MOTOR_PWM_INDEX 2
-    #endif
- #else
-   #define DOME_MOTOR_PWM_INDEX 0
- #endif
-    { DOME_MOTOR_PWM,    800, 2200, 0 }
- #define DOME_PWM_SETTINGS DOME_MOTOR_PWM_INDEX
+  #endif
+  #ifdef NEED_DOME_PWM_PINS
+    ,{ DOME_MOTOR_PWM,      800, 2200, 0 }
+  #endif
 #endif
 };
-
 ServoDispatchDirect<SizeOfArray(servoSettings)> servoDispatch(servoSettings);
 
 ////////////////////////////////
@@ -379,8 +144,6 @@ Preferences preferences;
 #ifdef SERIAL_MARCDUINO_TX_PIN
 SoftwareSerial marcSerial;
 #endif
-
-////////////////////////////////
 
 ////////////////////////////////////
 // Forward declare utility routines
@@ -769,7 +532,7 @@ TankDriveRoboteq tankDrive(Serial1, servoDispatch, DRIVE_PWM_SETTINGS, driveStic
 #error Unsupported DRIVE_SYSTEM
 #endif
 
-#if DOME_DRIVE == DOME_DRIVE_PWM
+#ifdef NEED_DOME_PWM_PINS
 DomeDrivePWM domeDrive(servoDispatch, DOME_PWM_SETTINGS, domeStick);
 #elif DOME_DRIVE == DOME_DRIVE_SABER
 DomeDriveSabertooth domeDrive(129, DOME_DRIVE_SERIAL, domeStick);
