@@ -22,9 +22,10 @@
 // the easiest thing is reuse the address of your USB Bluetooth dongle here. Alternatively,
 // you can use sixaxispair to pair your controllers with the ESP32.
 
-#define MY_BT_ADDR        "ac:67:b2:6c:70:8c"  // The address to which my controller is currently paired
-//#define MY_BT_ADDR      "7c:9e:bd:d8:eB:00"  // The address of this ESP32 device
-//#define MY_BT_ADDR      "00:15:83:F3:61:A6"  // My SHADOW controller's USB Dongle MAC address
+#define MY_BT_ADDR             "24:6f:28:44:a5:ae"
+//#define MY_BT_ADDR           "03:03:03:03:03:03"
+//#define MY_BT_ADDR           "84:C5:A6:61:AC:37"
+//#define MY_BT_ADDR           "b6:0c:76:94:05:b0" (PS4)
 
 // Assign a Bluetooth address here if you want a specific controller as the
 // drive stick or dome stick otherwise it will be first come first serve.
@@ -40,9 +41,9 @@
 
 // Uncomment one of the following that is the type of PS controller you are using (default PS3)
 
-#define DRIVE_CONTROLLER_TYPE     kPS4
+#define DRIVE_CONTROLLER_TYPE   kPS3Nav
 //#define DRIVE_CONTROLLER_TYPE   kPS3
-//#define DRIVE_CONTROLLER_TYPE   kPS3Nav
+//#define DRIVE_CONTROLLER_TYPE   kPS4
 
 // ------------------------------
 // Drive system
@@ -55,7 +56,7 @@
 //  DRIVE_SYSTEM_ROBOTEQ_SERIAL
 //  DRIVE_SYSTEM_ROBOTEQ_PWM_SERIAL
 
-#define DRIVE_SYSTEM    DRIVE_SYSTEM_ROBOTEQ_PWM
+#define DRIVE_SYSTEM    DRIVE_SYSTEM_ROBOTEQ_PWM_SERIAL
 
 // ------------------------------
 // Dome system
@@ -66,13 +67,13 @@
 //  DOME_DRIVE_PWM
 //  DOME_DRIVE_SABER
 
-#define DOME_DRIVE    DOME_DRIVE_SABER
+#define DOME_DRIVE    DOME_DRIVE_PWM
 
 // Uncomment to enable dome controller gestures.
 // Press joystick button L3. Will collect a series of button presses and joystick movements.
 // Press joystick button L3 to recognize gesture.
 
-//#define DOME_CONTROLLER_GESTURES
+#define DOME_CONTROLLER_GESTURES
 
 // ------------------------------
 // SYK radio controller
