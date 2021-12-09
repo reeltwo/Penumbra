@@ -1,7 +1,9 @@
 #ifndef __PENUMBRA_USER_SETTINGS_H__
 #define __PENUMBRA_USER_SETTINGS_H__
 
-#include "src/Fixed_Settings.h"    // This MUST be the first line in this file.
+// =============================================================
+
+#include "src/Fixed_Settings.h"    // Do not move this line's placement.
 
 // =============================================================
 
@@ -144,6 +146,30 @@
 
 // =============================================================
 
-#include "src/Variable_Settings.h"    // This MUST be the last line in this file.
+#include "src/Variable_Settings.h"    // Do not move this line's placement.
+
+// =============================================================
+
+// ------------------------------
+// Baud rates
+
+#ifndef DRIVE_BAUD_RATE
+  #define DRIVE_BAUD_RATE      9600
+#endif
+
+#ifndef MARCDUINO_BAUD_RATE
+  #define MARCDUINO_BAUD_RATE  9600
+#endif
+
+// ------------------------------
+// Gesture settings
+
+#ifndef MAX_GESTURE_LENGTH
+  #define MAX_GESTURE_LENGTH   20
+#endif
+
+#ifndef GESTURE_TIMEOUT_MS
+  #define GESTURE_TIMEOUT_MS   2000
+#endif
 
 #endif
