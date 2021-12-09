@@ -26,6 +26,26 @@
   #error Unsupported DRIVE_SYSTEM
 #endif
 
+// Baud rates
+
+#ifndef DRIVE_BAUD_RATE
+  #define DRIVE_BAUD_RATE      9600
+#endif
+
+#ifndef MARCDUINO_BAUD_RATE
+  #define MARCDUINO_BAUD_RATE  9600
+#endif
+
+// Gesture settings
+
+#ifndef MAX_GESTURE_LENGTH
+  #define MAX_GESTURE_LENGTH   20
+#endif
+
+#ifndef GESTURE_TIMEOUT_MS
+  #define GESTURE_TIMEOUT_MS   2000
+#endif
+
 // Set the dome serial address when using Syren10 for
 // the dome but not using Sabertooth for the drive.
 
@@ -80,7 +100,7 @@
   #else
     #define DOME_PWM_INDEX 0
   #endif
-  #define DOME_PWM_SETTINGS DOME_MOTOR_PWM_INDEX
+  #define DOME_PWM_SETTINGS DOME_PWM_INDEX
 #endif
 
 #endif
