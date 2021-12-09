@@ -1,7 +1,9 @@
 #ifndef __PENUMBRA_USER_SETTINGS_H__
 #define __PENUMBRA_USER_SETTINGS_H__
 
-#include "src/Fixed_Settings.h"    // This MUST be the first line in this file.
+// =============================================================
+
+#include "src/Fixed_Settings.h"    // Do not move this line's placement.
 
 // =============================================================
 
@@ -142,6 +144,12 @@
 //#define WIFI_ACCESS_POINT     false  /* true if access point: false if joining existing wifi */
 #endif
 
+// =============================================================
+
+#include "src/Variable_Settings.h"    // Do not move this line's placement.
+
+// =============================================================
+
 // ------------------------------
 // Baud rates
 
@@ -163,9 +171,5 @@
 #ifndef GESTURE_TIMEOUT_MS
   #define GESTURE_TIMEOUT_MS   2000
 #endif
-
-// =============================================================
-
-#include "src/Variable_Settings.h"    // This MUST be the last line in this file.
 
 #endif
