@@ -142,6 +142,28 @@
 //#define WIFI_ACCESS_POINT     false  /* true if access point: false if joining existing wifi */
 #endif
 
+// ------------------------------
+// Baud rates
+
+#ifndef DRIVE_BAUD_RATE
+  #define DRIVE_BAUD_RATE      9600
+#endif
+
+#ifndef MARCDUINO_BAUD_RATE
+  #define MARCDUINO_BAUD_RATE  9600
+#endif
+
+// ------------------------------
+// Gesture settings
+
+#ifndef MAX_GESTURE_LENGTH
+  #define MAX_GESTURE_LENGTH   20
+#endif
+
+#ifndef GESTURE_TIMEOUT_MS
+  #define GESTURE_TIMEOUT_MS   2000
+#endif
+
 // =============================================================
 
 #include "src/Variable_Settings.h"    // This MUST be the last line in this file.
