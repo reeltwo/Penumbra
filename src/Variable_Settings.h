@@ -80,7 +80,7 @@
   #else
     #define DOME_PWM_INDEX 0
   #endif
-  #define DOME_PWM_SETTINGS DOME_MOTOR_PWM_INDEX
+  #define DOME_PWM_SETTINGS DOME_PWM_INDEX
 #endif
 
 #endif
