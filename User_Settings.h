@@ -75,6 +75,20 @@
 
 #define DOME_CONTROLLER_GESTURES
 
+// Uncomment to disable throotle boost mode where l2 will increase speed above MAX_SPEED
+#define ENABLE_TANK_DRIVE_THROOTLE_BOOST_MODE
+#define ENABLE_DOME_DRIVE_THROOTLE_BOOST_MODE
+
+// Default drive system configuration. Can be changed through web interface and stored in flash
+
+#define MAXIMUM_SPEED        0.5f   // Top speed limiter - percentage 0.0 - 1.0. default 50%
+#define MAXIMUM_GUEST_SPEED  0.3f   // Top speed for a guest joystick (if used) - percentage 0.0 - 1.0. default 30%
+#define ACCELERATION_SCALE   100    // Scale value of 1 means instant. Scale value of 100 means that the throttle will increase 1/100 every 25ms
+#define DECELRATION_SCALE    20     // Scale value of 1 means instant. Scale value of 20 means that the throttle will decrease 1/20 every 25ms
+#define SCALING              true   // set to true if acceleration/decelleration should be applied
+#define THROTTLE_INVERTED    false  // set to true if throttle should be inverted
+#define TURN_INVERTED        false  // set to true if turn should be inverted
+
 // ------------------------------
 // SYK radio controller
 
