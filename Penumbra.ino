@@ -161,6 +161,7 @@ class DriveController : public PSController
 {
 public:
     DriveController(const char* mac = nullptr) : PSController(mac, DRIVE_CONTROLLER_TYPE) {}
+
     virtual void notify() override
     {
         uint32_t currentTime = millis();
@@ -254,7 +255,16 @@ public:
         }
         fLastTime = currentTime;
     }
-    
+
+    virtual float getThrottle() const override
+    {
+    #ifdef ENABLE_TANK_DRIVE_THROOTLE_BOOST_MODE
+        return (float)state.analog.button.l2/255.0;
+    #else
+        return 0.0;
+    #endif
+    }
+
     virtual void onConnect() override
     {
         DEBUG_PRINTLN("Drive Stick Connected");
@@ -299,6 +309,15 @@ public:
             process();
         }
         fLastTime = currentTime;
+    }
+
+    virtual float getThrottle() const override
+    {
+    #ifdef ENABLE_DOME_DRIVE_THROOTLE_MODE
+        return (float)state.analog.button.l2/255.0;
+    #else
+        return 0.0;
+    #endif
     }
 
     void process()
