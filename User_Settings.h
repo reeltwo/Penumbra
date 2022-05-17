@@ -79,6 +79,25 @@
 #define ENABLE_TANK_DRIVE_THROOTLE_BOOST_MODE
 #define ENABLE_DOME_DRIVE_THROOTLE_BOOST_MODE
 
+// Drive using left stick or right stick
+#define TANK_DRIVE_LEFT_STICK
+//#define TANK_DRIVE_RIGHT_STICK
+
+// Enable so L1 (left stick) or R1 (right stick) will be used as a hard break 
+#define TANK_DRIVE_USE_HARD_STOP
+
+// Spin dome using right stick or left stick
+//#define DOME_DRIVE_LEFT_STICK
+#define DOME_DRIVE_RIGHT_STICK
+
+// Enable so L1 (left stick) or R1 (right stick) will be used as a hard break 
+//#define DOME_DRIVE_USE_HARD_STOP
+
+#if (defined(TANK_DRIVE_LEFT_STICK) && defined(DOME_DRIVE_LEFT_STICK)) || \
+    (defined(TANK_DRIVE_RIGHT_STICK) && defined(DOME_DRIVE_RIGHT_STICK))
+ #error Use opposite sticks for dome and feet motors
+#endif
+
 // Default drive system configuration. Can be changed through web interface and stored in flash
 
 #define MAXIMUM_SPEED        0.5f   // Top speed limiter - percentage 0.0 - 1.0. default 50%

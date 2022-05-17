@@ -256,15 +256,6 @@ public:
         fLastTime = currentTime;
     }
 
-    virtual float getThrottle() const override
-    {
-    #ifdef ENABLE_TANK_DRIVE_THROOTLE_BOOST_MODE
-        return (float)state.analog.button.l2/255.0;
-    #else
-        return 0.0;
-    #endif
-    }
-
     virtual void onConnect() override
     {
         DEBUG_PRINTLN("Drive Stick Connected");
@@ -309,15 +300,6 @@ public:
             process();
         }
         fLastTime = currentTime;
-    }
-
-    virtual float getThrottle() const override
-    {
-    #ifdef ENABLE_DOME_DRIVE_THROOTLE_MODE
-        return (float)state.analog.button.l2/255.0;
-    #else
-        return 0.0;
-    #endif
     }
 
     void process()
@@ -774,6 +756,40 @@ void setup()
     tankDrive.setChannelMixing(preferences.getBool("mixing", CHANNEL_MIXING));
     tankDrive.setThrottleInverted(preferences.getBool("throttleinvert", THROTTLE_INVERTED));
     tankDrive.setTurnInverted(preferences.getBool("turninvert", TURN_INVERTED));
+#ifdef ENABLE_TANK_DRIVE_THROOTLE_BOOST_MODE
+    tankDrive.setUseThrottle(true);
+#else
+    tankDrive.setUseThrottle(false);
+#endif
+#ifdef TANK_DRIVE_LEFT_STICK
+    tankDrive.setUseLeftStick();
+#elif defined(TANK_DRIVE_RIGHT_STICK)
+    tankDrive.setUseRightStick();
+#endif
+#ifdef TANK_DRIVE_USE_HARD_STOP
+    tankDrive.setUseHardStop(true);
+#else
+    tankDrive.setUseHardStop(false);
+#endif
+
+#if DOME_DRIVE != DOME_DRIVE_NONE
+ #ifdef DOME_DRIVE_LEFT_STICK
+    tankDrive.setUseLeftStick();
+ #elif defined(DOME_DRIVE_RIGHT_STICK)
+    tankDrive.setUseRightStick();
+ #endif
+ #ifdef ENABLE_DOME_DRIVE_THROOTLE_BOOST_MODE
+    domeDrive.setUseThrottle(true);
+ #else
+    domeDrive.setUseThrottle(true);
+ #endif
+ #ifdef DOME_DRIVE_USE_HARD_STOP
+    domeDrive.setUseHardStop(true);
+ #else
+    domeDrive.setUseHardStop(false);
+ #endif
+#endif
+    domeDrive.setUseRightStick();
 
 #ifdef USE_WIFI_WEB
     // For safety we will stop the motors if the web client is connected
