@@ -1,6 +1,6 @@
 # Minimal drive system for the ESP32 #
 
-This sketch provides a basic drive system running on the ESP32. It depends on the [Reeltwo](https://reeltwo.github.io/Reeltwo) library. It has been updated to control a dome motor and support a second PS3Nav controller or a single PS3/PS4 controller. The dome motor needs to be either PWM based or Sabertooth Serial.
+This sketch provides a basic drive system running on the ESP32. It has been updated to control a dome motor and support a second PS3Nav controller or a single PS3/PS4 controller. The dome motor needs to be either PWM based or Sabertooth Serial.
 
 Default dome and motor drive system is Sabertooth. Change this macro to change the foot motor drive:
 
@@ -75,3 +75,9 @@ If running a Microbasic script to adjust the max RPM you can define:
 ```C++
 #define THROTTLE_MOTOR_PWM  21
 ```
+
+## Libraries Used
+
+<ul>
+<li>https://github.com/reeltwo/Reeltwo</li>
+</ul>
