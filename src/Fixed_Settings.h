@@ -37,6 +37,7 @@
 #define PREFERENCE_DRIVE_MIXING             "mixing"
 #define PREFERENCE_DRIVE_THROTTLE_INVERT    "throttleinvert"
 #define PREFERENCE_DRIVE_TURN_INVERT        "turninvert"
+#define PREFERENCE_DOME_DRIVE_INVERT        "domeinvert"
 #define PREFERENCE_WIFI_ENABLED             "wifi"
 #define PREFERENCE_WIFI_SSID                "ssid"
 #define PREFERENCE_WIFI_PASS                "pass"

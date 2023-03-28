@@ -112,9 +112,18 @@
  #endif
 #endif
 #include "bt/PSController/PSController.h"
+#include "esp_bt_device.h"
 
 #ifdef USE_OTA
  #include <ArduinoOTA.h>
+#endif
+
+#ifdef USE_USB
+#include "usbhub.h"
+#include "BTD.h"
+
+USB Usb;
+BTD Btd(&Usb);
 #endif
 
 ////////////////////////////////
@@ -617,6 +626,11 @@ WElement mainContents[] = {
     WCheckbox("Turn Inverted", "turnInvert",
         []() { return tankDrive.getTurnInverted(); },
         [](bool val) { tankDrive.stop(); tankDrive.setTurnInverted(val); } ),
+#if DOME_DRIVE != DOME_DRIVE_NONE
+    WCheckbox("Dome Inverted", "domeInvert",
+        []() { return domeDrive.getInverted(); },
+        [](bool val) { domeDrive.stop(); domeDrive.setInverted(val); } ),
+#endif
     WButton("Save", "save", []() {
         preferences.putFloat(PREFERENCE_DRIVE_SPEED, tankDrive.getMaxSpeed());
         preferences.putFloat(PREFERENCE_DRIVE_THROTTLE_ACC_SCALE, tankDrive.getThrottleAccelerationScale());
@@ -628,18 +642,24 @@ WElement mainContents[] = {
         preferences.putBool(PREFERENCE_DRIVE_MIXING, tankDrive.getChannelMixing());
         preferences.putBool(PREFERENCE_DRIVE_THROTTLE_INVERT, tankDrive.getThrottleInverted());
         preferences.putBool(PREFERENCE_DRIVE_TURN_INVERT, tankDrive.getTurnInverted());
+    #if DOME_DRIVE != DOME_DRIVE_NONE
+        preferences.putBool(PREFERENCE_DOME_DRIVE_INVERT, domeDrive.getInverted());
+    #endif
     }),
     WButton("Restore", "restore", []() {
         tankDrive.setMaxSpeed(preferences.getFloat(PREFERENCE_DRIVE_SPEED, MAXIMUM_SPEED));
         tankDrive.setThrottleAccelerationScale(preferences.getFloat(PREFERENCE_DRIVE_THROTTLE_ACC_SCALE, ACCELERATION_SCALE));
-        tankDrive.setThrottleDecelerationScale(preferences.getFloat(PREFERENCE_DRIVE_THROTTLE_DEC_SCALE, DECELRATION_SCALE));
+        tankDrive.setThrottleDecelerationScale(preferences.getFloat(PREFERENCE_DRIVE_THROTTLE_DEC_SCALE, DECCELRATION_SCALE));
         tankDrive.setTurnAccelerationScale(preferences.getFloat(PREFERENCE_DRIVE_TURN_ACC_SCALE, ACCELERATION_SCALE*2));
-        tankDrive.setTurnDecelerationScale(preferences.getFloat(PREFERENCE_DRIVE_TURN_DEC_SCALE, DECELRATION_SCALE));
+        tankDrive.setTurnDecelerationScale(preferences.getFloat(PREFERENCE_DRIVE_TURN_DEC_SCALE, DECCELRATION_SCALE));
         tankDrive.setGuestSpeedModifier(preferences.getFloat(PREFERENCE_DRIVE_GUEST_SPEED, MAXIMUM_GUEST_SPEED));
         tankDrive.setScaling(preferences.getBool(PREFERENCE_DRIVE_SCALING, SCALING));
         tankDrive.setChannelMixing(preferences.getBool(PREFERENCE_DRIVE_MIXING, CHANNEL_MIXING));
         tankDrive.setThrottleInverted(preferences.getBool(PREFERENCE_DRIVE_THROTTLE_INVERT, THROTTLE_INVERTED));
         tankDrive.setTurnInverted(preferences.getBool(PREFERENCE_DRIVE_TURN_INVERT, TURN_INVERTED));
+    #if DOME_DRIVE != DOME_DRIVE_NONE
+        domeDrive.setInverted(preferences.getBool(PREFERENCE_DOME_DRIVE_INVERT, DOME_INVERTED));
+    #endif
     }),
     WImage("astromech", ASTROMECH_IMAGE)
 };
@@ -648,6 +668,21 @@ WPage pages[] = {
 };
 WifiWebServer<1,SizeOfArray(pages)> webServer(pages, wifiAccess);
 #endif
+
+void showBluetoothAddress()
+{
+    const uint8_t* addr = esp_bt_dev_get_address();
+    printf("%02X:%02X:%02X:%02X:%02X:%02X\n", addr[0], addr[1], addr[2], addr[3], addr[4], addr[5]);
+
+#ifdef USE_USB
+    Btd.my_bdaddr[0] = addr[5];
+    Btd.my_bdaddr[1] = addr[4];
+    Btd.my_bdaddr[2] = addr[3];
+    Btd.my_bdaddr[3] = addr[2];
+    Btd.my_bdaddr[4] = addr[1];
+    Btd.my_bdaddr[5] = addr[0];
+#endif
+}
 
 void setup()
 {
@@ -680,8 +715,13 @@ void setup()
 #endif
 
     SetupEvent::ready();
+#ifdef MY_BT_ADDR
     PSController::startListening(MY_BT_ADDR);
+#else
+    PSController::startListening();
+#endif
 
+    showBluetoothAddress();
 #ifdef USE_WIFI_WEB
     wifiAccess.notifyWifiConnected([](WifiAccess &wifi) {
         Serial.print("Connect to http://"); Serial.println(wifi.getIPAddress());
@@ -743,19 +783,19 @@ void setup()
     });
 #endif
 
-    tankDrive.setMaxSpeed(preferences.getFloat("maxspeed", MAXIMUM_SPEED));
-    tankDrive.setThrottleAccelerationScale(preferences.getFloat("throttleaccscale", ACCELERATION_SCALE));
-    tankDrive.setThrottleDecelerationScale(preferences.getFloat("throttledecscale", DECELRATION_SCALE));
-    tankDrive.setTurnAccelerationScale(preferences.getFloat("turnaccscale", ACCELERATION_SCALE*2));
-    tankDrive.setTurnDecelerationScale(preferences.getFloat("turndecscale", DECELRATION_SCALE));
+    tankDrive.setMaxSpeed(preferences.getFloat(PREFERENCE_DRIVE_SPEED, MAXIMUM_SPEED));
+    tankDrive.setThrottleAccelerationScale(preferences.getFloat(PREFERENCE_DRIVE_THROTTLE_ACC_SCALE, ACCELERATION_SCALE));
+    tankDrive.setThrottleDecelerationScale(preferences.getFloat(PREFERENCE_DRIVE_THROTTLE_DEC_SCALE, DECCELRATION_SCALE));
+    tankDrive.setTurnAccelerationScale(preferences.getFloat(PREFERENCE_DRIVE_TURN_ACC_SCALE, ACCELERATION_SCALE*2));
+    tankDrive.setTurnDecelerationScale(preferences.getFloat(PREFERENCE_DRIVE_TURN_DEC_SCALE, DECCELRATION_SCALE));
 #ifdef USE_RADIO
     tankDrive.setGuestStick(radioStick);
 #endif
-    tankDrive.setGuestSpeedModifier(preferences.getFloat("guestmaxspeed", MAXIMUM_GUEST_SPEED));
-    tankDrive.setScaling(preferences.getBool("scaling", SCALING));
-    tankDrive.setChannelMixing(preferences.getBool("mixing", CHANNEL_MIXING));
-    tankDrive.setThrottleInverted(preferences.getBool("throttleinvert", THROTTLE_INVERTED));
-    tankDrive.setTurnInverted(preferences.getBool("turninvert", TURN_INVERTED));
+    tankDrive.setGuestSpeedModifier(preferences.getFloat(PREFERENCE_DRIVE_GUEST_SPEED, MAXIMUM_GUEST_SPEED));
+    tankDrive.setScaling(preferences.getBool(PREFERENCE_DRIVE_SCALING, SCALING));
+    tankDrive.setChannelMixing(preferences.getBool(PREFERENCE_DRIVE_MIXING, CHANNEL_MIXING));
+    tankDrive.setThrottleInverted(preferences.getBool(PREFERENCE_DRIVE_THROTTLE_INVERT, THROTTLE_INVERTED));
+    tankDrive.setTurnInverted(preferences.getBool(PREFERENCE_DRIVE_TURN_INVERT, TURN_INVERTED));
 #ifdef ENABLE_TANK_DRIVE_THROOTLE_BOOST_MODE
     tankDrive.setUseThrottle(true);
 #else
@@ -788,8 +828,9 @@ void setup()
  #else
     domeDrive.setUseHardStop(false);
  #endif
-#endif
     domeDrive.setUseRightStick();
+    domeDrive.setInverted(preferences.getBool(PREFERENCE_DOME_DRIVE_INVERT, DOME_INVERTED));
+#endif
 
 #ifdef USE_WIFI_WEB
     // For safety we will stop the motors if the web client is connected
@@ -820,6 +861,12 @@ void setup()
 #endif
 
     DEBUG_PRINTLN("READY");
+#ifdef USE_USB
+    if (Usb.Init() == -1) {
+        printf("OSC did not start\n");
+        while (1); //halt
+    }
+#endif
 }
 
 void eventLoopTask(void* arg)
@@ -833,6 +880,9 @@ void eventLoopTask(void* arg)
 
 void loop()
 {
+#ifdef USE_USB
+    Usb.Task();
+#endif
 #ifdef USE_OTA
     ArduinoOTA.handle();
 #endif

@@ -16,11 +16,19 @@
 //#define USE_VERBOSE_SERVO_DEBUG
 
 // ------------------------------
+// USB Host support
+//
+// Uncomment the following line if you are using Penumbra board and want to use the USB
+// port for pairing PS3 controllers.
+//#define USE_USB
+
+// ------------------------------
 // Bluetooth
 
 // Bluetooth address of this ESP32 device. If you already have a Shadow system configured
 // the easiest thing is reuse the address of your USB Bluetooth dongle here. Alternatively,
-// you can use sixaxispair to pair your controllers with the ESP32.
+// you can use sixaxispair to pair your controllers with the ESP32. Uncomment if you wish
+// to use the ESP32 bluetooth address
 
 #define MY_BT_ADDR             "24:6f:28:44:a5:ae"
 //#define MY_BT_ADDR           "03:03:03:03:03:03"
@@ -103,10 +111,12 @@
 #define MAXIMUM_SPEED        0.5f   // Top speed limiter - percentage 0.0 - 1.0. default 50%
 #define MAXIMUM_GUEST_SPEED  0.3f   // Top speed for a guest joystick (if used) - percentage 0.0 - 1.0. default 30%
 #define ACCELERATION_SCALE   100    // Scale value of 1 means instant. Scale value of 100 means that the throttle will increase 1/100 every 25ms
-#define DECELRATION_SCALE    20     // Scale value of 1 means instant. Scale value of 20 means that the throttle will decrease 1/20 every 25ms
+#define DECCELRATION_SCALE   20     // Scale value of 1 means instant. Scale value of 20 means that the throttle will decrease 1/20 every 25ms
 #define SCALING              true   // set to true if acceleration/decelleration should be applied
 #define THROTTLE_INVERTED    false  // set to true if throttle should be inverted
 #define TURN_INVERTED        false  // set to true if turn should be inverted
+
+#define DOME_INVERTED        false  // set to true if dome drive should be inverted
 
 // ------------------------------
 // SYK radio controller
