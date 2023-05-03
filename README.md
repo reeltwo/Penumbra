@@ -1,5 +1,8 @@
 # Minimal drive system for the ESP32 #
 
+NOTE: Previous users should look at pin-map.h. It has been changed to default to the Penumbra board which has host USB.
+If not using the Penumbra board you can uncomment ```#define PENUMBRA_BOARD```
+
 This sketch provides a basic drive system running on the ESP32. It has been updated to control a dome motor and support a second PS3Nav controller or a single PS3/PS4 controller. The dome motor needs to be either PWM based or Sabertooth Serial.
 
 Default dome and motor drive system is Sabertooth. Change this macro to change the foot motor drive:
@@ -80,4 +83,6 @@ If running a Microbasic script to adjust the max RPM you can define:
 
 <ul>
 <li>https://github.com/reeltwo/Reeltwo</li>
+<li>https://github.com/rimim/espsoftwareserial</li>
+<li>https://github.com/reeltwo/USB_Host_Shield_2.0</li>
 </ul>

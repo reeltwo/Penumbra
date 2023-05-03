@@ -512,7 +512,7 @@ RadioController radioStick(Serial2);
 #if DRIVE_SYSTEM == DRIVE_SYSTEM_SABER
 // Tank Drive assign:
 //    Serial1 for Sabertooth packet serial commands
-TankDriveSabertooth tankDrive(128, Serial1, driveStick);
+TankDriveSabertooth tankDrive(TANK_DRIVE_ID, Serial1, driveStick);
 #elif DRIVE_SYSTEM == DRIVE_SYSTEM_PWM
 // Tank Drive assign:
 //    servo index 0 (LEFT_MOTOR_PWM)
@@ -545,7 +545,7 @@ TankDriveRoboteq tankDrive(Serial1, servoDispatch, DRIVE_PWM_SETTINGS, driveStic
 #ifdef NEED_DOME_PWM_PINS
 DomeDrivePWM domeDrive(servoDispatch, DOME_PWM_SETTINGS, domeStick);
 #elif DOME_DRIVE == DOME_DRIVE_SABER
-DomeDriveSabertooth domeDrive(129, DOME_DRIVE_SERIAL, domeStick);
+DomeDriveSabertooth domeDrive(DOME_DRIVE_ID, DOME_DRIVE_SERIAL, domeStick);
 #endif
 
 void enableController()
@@ -649,9 +649,9 @@ WElement mainContents[] = {
     WButton("Restore", "restore", []() {
         tankDrive.setMaxSpeed(preferences.getFloat(PREFERENCE_DRIVE_SPEED, MAXIMUM_SPEED));
         tankDrive.setThrottleAccelerationScale(preferences.getFloat(PREFERENCE_DRIVE_THROTTLE_ACC_SCALE, ACCELERATION_SCALE));
-        tankDrive.setThrottleDecelerationScale(preferences.getFloat(PREFERENCE_DRIVE_THROTTLE_DEC_SCALE, DECCELRATION_SCALE));
+        tankDrive.setThrottleDecelerationScale(preferences.getFloat(PREFERENCE_DRIVE_THROTTLE_DEC_SCALE, DECELERATION_SCALE));
         tankDrive.setTurnAccelerationScale(preferences.getFloat(PREFERENCE_DRIVE_TURN_ACC_SCALE, ACCELERATION_SCALE*2));
-        tankDrive.setTurnDecelerationScale(preferences.getFloat(PREFERENCE_DRIVE_TURN_DEC_SCALE, DECCELRATION_SCALE));
+        tankDrive.setTurnDecelerationScale(preferences.getFloat(PREFERENCE_DRIVE_TURN_DEC_SCALE, DECELERATION_SCALE));
         tankDrive.setGuestSpeedModifier(preferences.getFloat(PREFERENCE_DRIVE_GUEST_SPEED, MAXIMUM_GUEST_SPEED));
         tankDrive.setScaling(preferences.getBool(PREFERENCE_DRIVE_SCALING, SCALING));
         tankDrive.setChannelMixing(preferences.getBool(PREFERENCE_DRIVE_MIXING, CHANNEL_MIXING));
@@ -785,9 +785,9 @@ void setup()
 
     tankDrive.setMaxSpeed(preferences.getFloat(PREFERENCE_DRIVE_SPEED, MAXIMUM_SPEED));
     tankDrive.setThrottleAccelerationScale(preferences.getFloat(PREFERENCE_DRIVE_THROTTLE_ACC_SCALE, ACCELERATION_SCALE));
-    tankDrive.setThrottleDecelerationScale(preferences.getFloat(PREFERENCE_DRIVE_THROTTLE_DEC_SCALE, DECCELRATION_SCALE));
+    tankDrive.setThrottleDecelerationScale(preferences.getFloat(PREFERENCE_DRIVE_THROTTLE_DEC_SCALE, DECELRATION_SCALE));
     tankDrive.setTurnAccelerationScale(preferences.getFloat(PREFERENCE_DRIVE_TURN_ACC_SCALE, ACCELERATION_SCALE*2));
-    tankDrive.setTurnDecelerationScale(preferences.getFloat(PREFERENCE_DRIVE_TURN_DEC_SCALE, DECCELRATION_SCALE));
+    tankDrive.setTurnDecelerationScale(preferences.getFloat(PREFERENCE_DRIVE_TURN_DEC_SCALE, DECELRATION_SCALE));
 #ifdef USE_RADIO
     tankDrive.setGuestStick(radioStick);
 #endif
@@ -814,9 +814,9 @@ void setup()
 
 #if DOME_DRIVE != DOME_DRIVE_NONE
  #ifdef DOME_DRIVE_LEFT_STICK
-    tankDrive.setUseLeftStick();
+    domeDrive.setUseLeftStick();
  #elif defined(DOME_DRIVE_RIGHT_STICK)
-    tankDrive.setUseRightStick();
+    domeDrive.setUseRightStick();
  #endif
  #ifdef ENABLE_DOME_DRIVE_THROOTLE_BOOST_MODE
     domeDrive.setUseThrottle(true);
@@ -828,7 +828,6 @@ void setup()
  #else
     domeDrive.setUseHardStop(false);
  #endif
-    domeDrive.setUseRightStick();
     domeDrive.setInverted(preferences.getBool(PREFERENCE_DOME_DRIVE_INVERT, DOME_INVERTED));
 #endif
 
