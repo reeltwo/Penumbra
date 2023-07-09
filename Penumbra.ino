@@ -150,6 +150,7 @@ ServoDispatchDirect<SizeOfArray(servoSettings)> servoDispatch(servoSettings);
 
 TaskHandle_t eventTask;
 Preferences preferences;
+boolean DrivePS3Chord, DomePS3Chord = false;
 #ifdef SERIAL_MARCDUINO_TX_PIN
 SoftwareSerial marcSerial;
 #endif
@@ -193,6 +194,13 @@ public:
             if (event.button_down.l3)
             {
                 DEBUG_PRINTLN("DRIVE L3 DOWN");
+                if (DrivePS3Chord)
+                {
+                    DEBUG_PRINTLN("DETACH DRIVE CONTROLLER");
+                    disableController();
+                    disconnect();
+                    DrivePS3Chord = false;
+                }
             }
             else if (event.button_up.l3)
             {
@@ -256,11 +264,14 @@ public:
             if (event.button_down.ps)
             {
                 DEBUG_PRINTLN("DRIVE PS DOWN");
+                DrivePS3Chord = true;
             }
             else if (event.button_up.ps)
             {
                 DEBUG_PRINTLN("DRIVE PS UP");
+                DrivePS3Chord = false;
             }
+
         }
         fLastTime = currentTime;
     }
@@ -330,6 +341,13 @@ public:
             if (event.button_down.l3)
             {
                 DEBUG_PRINTLN("DOME L3 DOWN");
+                if (DomePS3Chord)
+                {
+                    DEBUG_PRINTLN("DETACH DOME CONTROLLER");
+                    disableController();
+                    disconnect();
+                    DomePS3Chord = false;
+                }
             }
             else if (event.button_up.l3)
             {
@@ -393,10 +411,12 @@ public:
             if (event.button_down.ps)
             {
                 DEBUG_PRINTLN("DOME PS DOWN");
+                DomePS3Chord = true;
             }
             else if (event.button_up.ps)
             {
                 DEBUG_PRINTLN("DOME PS UP");
+                DomePS3Chord = false;
             }
             return;
         }
@@ -498,7 +518,9 @@ protected:
         }
     }
 };
+
 DomeController domeStick(DOME_STICK_BT_ADDR);
+
 #elif DOME_DRIVE != DOME_DRIVE_NONE
 // Dome Drive enabled using either PS3 or PS4 controller
 // the right side of the controller will be used to control the dome (left/right)
@@ -669,6 +691,15 @@ WPage pages[] = {
 WifiWebServer<1,SizeOfArray(pages)> webServer(pages, wifiAccess);
 #endif
 
+void eventLoopTask(void* arg)
+{
+    for (;;)
+    {
+        AnimatedEvent::process();
+        vTaskDelay(1);
+    }
+}
+
 void showBluetoothAddress()
 {
     const uint8_t* addr = esp_bt_dev_get_address();
@@ -721,7 +752,9 @@ void setup()
     PSController::startListening();
 #endif
 
+    DEBUG_PRINT("Bluetooth address: ");
     showBluetoothAddress();
+
 #ifdef USE_WIFI_WEB
     wifiAccess.notifyWifiConnected([](WifiAccess &wifi) {
         Serial.print("Connect to http://"); Serial.println(wifi.getIPAddress());
@@ -859,22 +892,14 @@ void setup()
     radioStick.start();
 #endif
 
-    DEBUG_PRINTLN("READY");
 #ifdef USE_USB
     if (Usb.Init() == -1) {
         printf("OSC did not start\n");
         while (1); //halt
     }
 #endif
-}
 
-void eventLoopTask(void* arg)
-{
-    for (;;)
-    {
-        AnimatedEvent::process();
-        vTaskDelay(1);
-    }
+    DEBUG_PRINTLN("Penumbra Ready...");
 }
 
 void loop()
