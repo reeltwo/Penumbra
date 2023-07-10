@@ -53,6 +53,7 @@
 //
 //    L2: Throttle
 //    L1: Hard brake
+//    Hold PS3 and press L1: Quick controller disconnect (and stop)
 //    Joystick: Drive
 //
 //  PS3 Dome controller:
@@ -194,6 +195,15 @@ public:
             if (event.button_down.l3)
             {
                 DEBUG_PRINTLN("DRIVE L3 DOWN");
+            }
+            else if (event.button_up.l3)
+            {
+                DEBUG_PRINTLN("DRIVE L3 UP");
+            }
+
+            if (event.button_down.l1)
+            {
+                DEBUG_PRINTLN("DRIVE L1 DOWN");
                 if (DrivePS3Chord)
                 {
                     DEBUG_PRINTLN("DETACH DRIVE CONTROLLER");
@@ -202,9 +212,9 @@ public:
                     DrivePS3Chord = false;
                 }
             }
-            else if (event.button_up.l3)
+            else if (event.button_up.l1)
             {
-                DEBUG_PRINTLN("DRIVE L3 UP");
+                DEBUG_PRINTLN("DRIVE L1 UP");
             }
 
             if (event.button_down.cross)
@@ -341,6 +351,15 @@ public:
             if (event.button_down.l3)
             {
                 DEBUG_PRINTLN("DOME L3 DOWN");
+            }
+            else if (event.button_up.l3)
+            {
+                DEBUG_PRINTLN("DOME L3 UP");
+            }
+        #endif
+            if (event.button_down.l1)
+            {
+                DEBUG_PRINTLN("DOME L1 DOWN");
                 if (DomePS3Chord)
                 {
                     DEBUG_PRINTLN("DETACH DOME CONTROLLER");
@@ -349,11 +368,11 @@ public:
                     DomePS3Chord = false;
                 }
             }
-            else if (event.button_up.l3)
+            else if (event.button_up.l1)
             {
-                DEBUG_PRINTLN("DOME L3 UP");
+                DEBUG_PRINTLN("DOME L1 UP");
             }
-        #endif
+
             if (event.button_down.cross)
             {
                 DEBUG_PRINTLN("DOME X DOWN");
