@@ -21,13 +21,6 @@
 //#define USE_VERBOSE_SERVO_DEBUG
 
 // ------------------------------
-// USB Host support
-//
-// Uncomment the following line if you are using Penumbra board and want to use the USB
-// port for pairing PS3 controllers.
-//#define USE_USB
-
-// ------------------------------
 // Bluetooth
 
 // Bluetooth address of this ESP32 device. If you already have a Shadow system configured
