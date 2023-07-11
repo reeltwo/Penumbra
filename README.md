@@ -1,7 +1,8 @@
 # Minimal drive system for the ESP32 #
 
-NOTE: Previous users should look at pin-map.h. It has been changed to default to the Penumbra board which has host USB.
-If not using the Penumbra board you can uncomment ```#define PENUMBRA_BOARD```
+NOTE: Previous users should note the new option at the top of User_Settings.h, ```#define PENUMBRA_BOARD```. 
+This configures the script to use the Penumbra board, which has host USB.  If you are not using the Penumbra 
+board you will get an "OSC did not start" message and the script will halt unless you comment out this line.
 
 This sketch provides a basic drive system running on the ESP32. It has been updated to control a dome motor and support a second PS3Nav controller or a single PS3/PS4 controller. The dome motor needs to be either PWM based or Sabertooth Serial.
 

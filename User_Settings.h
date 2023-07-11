@@ -1,8 +1,11 @@
 #ifndef __PENUMBRA_USER_SETTINGS_H__
 #define __PENUMBRA_USER_SETTINGS_H__
 
+// Enable if using Penumbra board
+#define PENUMBRA_BOARD
+
 #include "pin-map.h"
-#include "src/Fixed_Settings.h"    // This MUST be the first line in this file.
+#include "src/Fixed_Settings.h"    // This MUST be near the top of this file, after pin-map.h is included.
 
 // =============================================================
 
@@ -18,19 +21,12 @@
 //#define USE_VERBOSE_SERVO_DEBUG
 
 // ------------------------------
-// USB Host support
-//
-// Uncomment the following line if you are using Penumbra board and want to use the USB
-// port for pairing PS3 controllers.
-//#define USE_USB
-
-// ------------------------------
 // Bluetooth
 
 // Bluetooth address of this ESP32 device. If you already have a Shadow system configured
 // the easiest thing is reuse the address of your USB Bluetooth dongle here. Alternatively,
-// you can use sixaxispair to pair your controllers with the ESP32. Uncomment if you wish
-// to use the ESP32 bluetooth address
+// you can use sixaxispair to pair your controllers with the ESP32. Comment MY_BT_ADDR out 
+// if you wish to use the ESP32's built-in bluetooth address
 
 #ifndef USE_USB
 #define MY_BT_ADDR             "24:6f:28:44:a5:ae"
@@ -39,7 +35,7 @@
 //#define MY_BT_ADDR           "84:C5:A6:61:AC:37"
 //#define MY_BT_ADDR           "b6:0c:76:94:05:b0" (PS4)
 
-// Assign a Bluetooth address here if you want a specific controller as the
+// Assign a Bluetooth address below if you want a specific controller as the
 // drive stick or dome stick otherwise it will be first come first serve.
 
 #define DRIVE_STICK_BT_ADDR    nullptr

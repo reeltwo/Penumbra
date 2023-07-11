@@ -1,6 +1,5 @@
-
-// Enable if using Penumbra board
-#define PENUMBRA_BOARD
+#ifndef __PENUMBRA_PIN_MAP_H__
+#define __PENUMBRA_PIN_MAP_H__
 
 #ifdef PENUMBRA_BOARD
 
@@ -81,5 +80,7 @@
 
 //#include "SoftwareSerial.h"
 //#define SERIAL_MARCDUINO_TX_PIN 5 // Set to the pin you use for Software Serial
+
+#endif
 
 #endif
